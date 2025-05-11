@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Organizer {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  wallet    String?    @unique
+  email     String?    @unique
+  campaigns Campaign[]
+  claims    Claim[]
+}
+
+model Campaign {
+  id                String      @id @default(cuid())
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  name              String
+  description       String?
+  organizerId       String
+  organizer         Organizer   @relation(fields: [organizerId], references: [id])
+  tokenSymbol       String
+  tokenUri          String
+  isActive          Boolean     @default(true)
+  qrCodeUrl         String?
+  startsAt          DateTime?
+  endsAt            DateTime?
+  claimLimitPerUser Int?
+  metadataUri       String?
+  claims            Claim[]
+  qrSessions        QRSession[]
+}
+
+model Claim {
+  id                    String           @id @default(cuid())
+  createdAt             DateTime         @default(now())
+  organizerId           String?
+  organizer             Organizer?       @relation(fields: [organizerId], references: [id])
+  campaignId            String
+  campaign              Campaign         @relation(fields: [campaignId], references: [id])
+  zkProofId             String?
+  zkProof               ZKProof?         @relation(fields: [zkProofId], references: [id])
+  status                ClaimStatus      @default(PENDING)
+  claimedAt             DateTime?
+  compressedMintAddress String?
+  qrSessionId           String?
+  qrSession             QRSession?       @relation(fields: [qrSessionId], references: [id])
+  compressedToken       CompressedToken?
+  deviceHash            String?
+  geoRegion             String?
+}
+
+model ZKProof {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  proof         Json
+  publicSignals Json
+  valid         Boolean  @default(true)
+  Claim         Claim[]
+}
+
+model QRSession {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  maxClaims  Int      @default(1)
+  nonce      String   @unique
+  claims     Claim[]
+}
+
+model CompressedToken {
+  id              String  @id @default(cuid())
+  mintAddress     String  @unique
+  claimId         String  @unique
+  claim           Claim   @relation(fields: [claimId], references: [id])
+  metadataUri     String?
+  collection      String?
+  compressedProof Json?
+}
+
+enum ClaimStatus {
+  PENDING
+  VERIFIED
+  CLAIMED
+  FAILED
+}
