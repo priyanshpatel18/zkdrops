@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (!campaign) return NextResponse.json({ error: "Failed to create campaign" }, { status: 400 });
 
     // Generate QR Code 
-    const qrData = `https://zkdrops.xyz/claim?${campaign.id}`;
+    const qrData = `https://zkdrops.xyz/dashboard/campaign/${campaign.id}`;
     const qrDataUrl = await QRCode.toDataURL(qrData);
 
     // Convert base64 to Blob and then to File

@@ -1,6 +1,5 @@
 "use client";
 
-import { WalletButton } from "@/components/solana/SolanaProvider";
 import {
   Accordion,
   AccordionContent,
@@ -21,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { createCampaign } from "@/lib/supabaseClient.";
 import { Campaign } from "@/types/types";
-import { useWalletUi } from "@wallet-ui/react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Calendar, Check, ImageIcon, Loader2, TrashIcon } from "lucide-react";
 import Image from "next/image";
@@ -31,8 +30,7 @@ import { toast } from "sonner";
 
 export default function CreateCampaignPage() {
   const router = useRouter();
-  const { account, connected } = useWalletUi();
-  const [isConnected, setIsConnected] = useState(connected);
+  const { publicKey, connected } = useWallet();
   const [loading, setLoading] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [tokenImage, setTokenImage] = useState<File | null>(null);
@@ -54,11 +52,6 @@ export default function CreateCampaignPage() {
 
   const now = new Date().toISOString().slice(0, 16);
   const nextDay = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().slice(0, 16);
-
-  useEffect(() => {
-    setIsConnected(connected);
-    setLoading(false);
-  }, [account, connected]);
 
   type HandleChange = (field: keyof Campaign, value: string | boolean) => void;
 
@@ -83,7 +76,7 @@ export default function CreateCampaignPage() {
       return;
     }
 
-    if (!account?.address) {
+    if (!publicKey) {
       toast.error("Please connect your wallet");
       return;
     }
@@ -100,7 +93,7 @@ export default function CreateCampaignPage() {
       const body = {
         ...formData,
         id: "",
-        organizerAddress: account.address.toString(),
+        organizerAddress: publicKey.toBase58(),
         claimLimitPerUser: parseInt(formData.claimLimitPerUser)
 
       }
@@ -120,21 +113,18 @@ export default function CreateCampaignPage() {
     }
   };
 
+  useEffect(() => {
+    setLoading(false);
+    if (!connected) {
+      router.push("/dashboard");
+    }
+  }, [connected, router]);
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] flex-col">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
         <p>Loading...</p>
-      </div>
-    );
-  }
-
-  if (!isConnected) {
-    return (
-      <div className="p-4 flex flex-col items-center text-center gap-6 min-h-screen justify-center">
-        <h1 className="text-2xl font-bold text-foreground">Create a Campaign</h1>
-        <p className="text-sm text-muted-foreground">Connect your wallet to get started</p>
-        <WalletButton />
       </div>
     );
   }

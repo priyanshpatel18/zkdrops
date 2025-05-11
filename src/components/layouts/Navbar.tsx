@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useWalletUi } from "@wallet-ui/react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
 import { Home, LayoutDashboard, Menu as MenuIcon, Plus, X } from "lucide-react";
 import Link from "next/link";
@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { WalletButton } from "../solana/SolanaProvider";
 
 export default function Navbar() {
-  const { connected } = useWalletUi();
+  const { connected } = useWallet();
   const [isConnected, setIsConnected] = useState(connected);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -50,13 +50,10 @@ export default function Navbar() {
             <Link href="/dashboard" className="text-sm text-foreground hover:text-primary transition flex items-center gap-1">
               <Home className="h-4 w-4" /> Dashboard
             </Link>
-            <Link href="/campaign/create" className="text-sm text-foreground hover:text-primary transition flex items-center gap-1">
+            <Link href="/dashboard/campaign/create" className="text-sm text-foreground hover:text-primary transition flex items-center gap-1">
               <Plus className="h-4 w-4" /> Create
             </Link>
-            <Link href="/campaigns" className="text-sm text-foreground hover:text-primary transition flex items-center gap-1">
-              <LayoutDashboard className="h-4 w-4" /> Campaigns
-            </Link>
-            <WalletButton size="sm" />
+            <WalletButton  />
           </div>
         )}
 
@@ -105,7 +102,7 @@ export default function Navbar() {
             >
               <LayoutDashboard className="h-4 w-4" /> Campaigns
             </Link>
-            <WalletButton size="sm" />
+            <WalletButton />
           </div>
         </motion.div>
       )}

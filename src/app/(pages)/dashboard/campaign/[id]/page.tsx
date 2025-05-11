@@ -1,9 +1,9 @@
 "use client";
 
-import { useWalletUi } from "@wallet-ui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
+  BarChart2,
   CalendarIcon,
   CheckCircle2,
   Copy,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Campaign } from "@/types/types";
+import { useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -43,7 +44,7 @@ import { toast } from "sonner";
 export default function CampaignPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { account, connected } = useWalletUi();
+  const { publicKey, connected } = useWallet();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
@@ -55,6 +56,16 @@ export default function CampaignPage() {
     minutes: 0,
     seconds: 0,
   });
+
+  const activeQrSession = useMemo(() => {
+    const now = new Date();
+
+    if (!campaign?.qrSessions) return null;
+
+    return campaign.qrSessions.find(session =>
+      new Date(session.expiresAt) >= now
+    );
+  }, [campaign]);
 
   useEffect(() => {
     if (!campaign || !campaign.endsAt) return;
@@ -103,13 +114,14 @@ export default function CampaignPage() {
               endsAt: typeof campaign.endsAt === "string" ? campaign.endsAt : campaign.endsAt ? new Date(campaign.endsAt).toISOString() : "",
               claimLimitPerUser: parseInt(campaign.claimLimitPerUser?.toString() || "0"),
               metadataUri: campaign.metadataUri || "",
-              qrCodeUrl: campaign.qrCodeUrl || ""
+              qrCodeUrl: campaign.qrCodeUrl || "",
+              qrSessions: campaign.qrSessions || []
             });
           }
 
           // Check if current user is the campaign organizer
-          if (connected && account && campaign) {
-            const isOrganizer = account.address.toString().toLowerCase() === campaign.organizer?.wallet.toLowerCase();
+          if (connected && publicKey && campaign) {
+            const isOrganizer = publicKey.toBase58().toLowerCase() === campaign.organizer?.wallet.toLowerCase();
             setIsOwner(isOrganizer);
           }
         } else {
@@ -127,7 +139,7 @@ export default function CampaignPage() {
     if (id) {
       fetchCampaign();
     }
-  }, [id, account, connected]);
+  }, [id, publicKey, connected]);
 
   const copyToClipboard = (text: string, message: string) => {
     navigator.clipboard.writeText(text);
@@ -421,9 +433,29 @@ export default function CampaignPage() {
 
                     <div className="space-y-4">
                       <h3 className="font-medium">Owner Actions</h3>
+
+                      {/* QR Analytics Section */}
+                      {campaign.qrSessions && campaign.qrSessions?.length > 0 && (
+                        <Card className="bg-muted/30">
+                          <CardHeader>
+                            <CardTitle className="text-sm font-medium flex items-center gap-2">
+                              <BarChart2 className="w-4 h-4" />
+                              QR Session Analytics
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="text-sm text-muted-foreground space-y-2">
+                            <p><strong>Total Sessions:</strong> {campaign.qrSessions.length}</p>
+                            {/* <p><strong>Total Claims:</strong> {campaign.qrSessions.reduce((acc, s) => acc + s.claimsCount, 0)}</p> */}
+                          </CardContent>
+                        </Card>
+                      )}
+
                       <div className="flex flex-wrap gap-3">
                         <Button
-                          onClick={() => router.push(`/campaigns/${id}/edit`)}
+                          onClick={() => {
+                            toast.info("Feature coming soon");
+                            // router.push(`/dashboard/campaign/${id}/edit`)
+                          }}
                           className="gap-2"
                         >
                           <EditIcon className="h-4 w-4" />
@@ -433,11 +465,32 @@ export default function CampaignPage() {
                         <Button
                           variant="outline"
                           className="gap-2"
-                          onClick={() => router.push(`/campaigns/${id}/claims`)}
+                          onClick={() => router.push(`/dashboard/campaign/${id}/claims`)}
                         >
                           <CheckCircle2 className="h-4 w-4" />
                           <span>View Claims</span>
                         </Button>
+
+                        {activeQrSession ? (
+                          <Button
+                            onClick={() => {
+                              toast.info("Feature coming soon");
+                              // router.push(`/dashboard/campaign/${id}/qr-sessions/${activeQrSession.id}/edit`)
+                            }}
+                            className="gap-2"
+                          >
+                            <QrCode className="h-4 w-4" />
+                            <span>Edit QR Session</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => router.push(`/dashboard/campaign/${id}/qr-sessions/new`)}
+                            className="gap-2"
+                          >
+                            <QrCode className="h-4 w-4" />
+                            <span>Create QR Session</span>
+                          </Button>
+                        )}
 
                         <Button
                           variant="outline"
@@ -461,8 +514,11 @@ export default function CampaignPage() {
                         size="lg"
                         className="gap-2"
                         onClick={() => {
-                          // Handle claim action
-                          toast.success("Claim functionality to be implemented");
+                          if (activeQrSession) {
+                            router.push(`/claim/${activeQrSession.nonce}`);
+                          } else {
+                            toast.error("No active sessions to claim");
+                          }
                         }}
                       >
                         <CheckCircle2 className="h-5 w-5" />
@@ -509,7 +565,7 @@ export default function CampaignPage() {
                 <div className="flex flex-col items-center gap-4">
                   <div className="bg-white p-6 rounded-lg">
                     <QRCodeSVG
-                      value={`${window.location.origin}/claim/${id}`}
+                      value={`${window.location.origin}/dashboard/campaign/${id}`}
                       size={200}
                       level="H"
                       includeMargin={true}
@@ -526,8 +582,8 @@ export default function CampaignPage() {
                         size="sm"
                         className="gap-1"
                         onClick={() => copyToClipboard(
-                          campaign.qrCodeUrl || `${window.location.origin}/claim/${id}`,
-                          'Claim link copied to clipboard!'
+                          `${window.location.origin}/dashboard/campaign/${id}`,
+                          'Campaign link copied to clipboard!'
                         )}
                       >
                         <Copy className="h-3 w-3" />
@@ -540,7 +596,7 @@ export default function CampaignPage() {
                         className="gap-1"
                         asChild
                       >
-                        <Link href={campaign.qrCodeUrl || `/claim/${id}`} target="_blank">
+                        <Link href={campaign.qrCodeUrl} target="_blank">
                           <ExternalLink className="h-3 w-3" />
                           <span>Open</span>
                         </Link>
