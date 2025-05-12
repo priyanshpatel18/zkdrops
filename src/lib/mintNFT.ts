@@ -20,7 +20,7 @@ const {
   createAllocTreeIx
 } = require('@solana/spl-account-compression');
 
-const RPC_ENDPOINT = 'https://devnet.helius-rpc.com/?api-key=9f52f156-8987-4d04-953f-54db6be65ec2'
+const RPC_ENDPOINT = `https://devnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIOUS_API_KEY}`;
 
 interface Metadata {
   name: string
