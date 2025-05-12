@@ -1,39 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [
-`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# zkdrops – Compressed Proof of Participation on Solana
 
-## Getting Started
+## 🧩 Overview
 
-First, run the development server:
+**zkdrops** is a zk-compressed Proof-of-Participation protocol built on **Solana**.  
+It allows organizers to mint experience tokens (cPOPs), share them via QR codes, and enable attendees to claim them using zero-knowledge proofs — all in a scalable, private, and verifiable manner.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔨 Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: Next.js (App Router)
+- **Blockchain**: Solana
+- **Compression**: [Light Protocol](https://docs.lightprotocol.com/)
+- **Wallets**: Phantom, Backpack (`@solana/wallet-adapter`)
+- **Database**: Prisma + Postgres
+- **QR Generation**: `qrcode.react`
+- **ZK Proofs**: (Planned) zk-SNARKs
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 👤 User Roles
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Role      | Capabilities                                         |
+|-----------|------------------------------------------------------|
+| Organizer | Create campaigns, generate QR sessions, mint cPOPs  |
+| Attendee  | Scan QR codes, generate ZK proof, claim cPOPs (NFTs) |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions
-are welcome!
+---
 
-## Deploy on Vercel
+## 🧭 App Flow
 
-The easiest way to deploy your Next.js app is to use
-the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)
-from the creators of Next.js.
+1. **Organizer** creates a campaign with metadata.
+2. **Organizer** generates a QR session linked to the campaign.
+3. **Organizer** mints **cPOPs** using Light Protocol and signs with their wallet.
+4. **Attendees** scan the QR code → generate ZK proof → claim the cPOP.
+5. **Compressed tokens** are recorded in the DB and linked to the campaign.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for
-more details.
+---
+
+## 📦 Core Features
+
+### 🎯 Campaign Creation
+
+- `POST /api/campaign`
+- Stores: name, description, token URI, metadata URI, limits, etc.
+
+### 🧾 QR Session
+
+- Time-bound, single-use QR code
+- Encodes campaign ID + session nonce
+- Modal UI for sharing, copying, or downloading the QR code
+
+### 🪙 cPOP Minting (Organizer)
+
+- Organizer signs a compressed token mint transaction
+- Minted via [Light Protocol](https://docs.lightprotocol.io)
+- Mint metadata saved to `/api/compressed-token`
+
+### 🔒 ZK Proof + Claim (Attendee) *(WIP)*
+
+- Attendee scans QR code
+- Generates zero-knowledge proof of presence
+- Proof is verified and cPOP is claimed
+
+---
+
+## 🔗 On-Chain Details
+
+- **Compression Library**: `@lightprotocol/compressed-token`
+- **Mint Address**: Derived using campaign + QR session nonce
+- **Decimals**: None (integer token amounts only)
+- **Merkle Trees**: Used to store and validate cTokens efficiently
+
+---
+
+## 🧠 Design Decisions
+
+- ❌ No backend minting — organizer must sign mint tx client-side
+- ✅ Metadata is stored once in the `Campaign` model (no duplication)
+- ✅ Prisma models are relational and support tracking claims, sessions, and tokens
+
+Built with ❤️ on Solana.
