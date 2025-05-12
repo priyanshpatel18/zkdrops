@@ -19,7 +19,7 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      className="w-full py-4 px-4 md:px-6 border-b bg-background sticky top-0 z-50 h-16"
+      className="w-full py-4 px-4 md:px-6 border-b border-border bg-background sticky top-0 z-50 h-16"
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}

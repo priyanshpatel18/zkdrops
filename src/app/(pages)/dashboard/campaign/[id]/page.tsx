@@ -511,7 +511,7 @@ export default function CampaignPage() {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-card rounded-lg shadow-lg max-w-md w-full border"
+              className="bg-card rounded-lg shadow-lg max-w-md w-full border-border"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
