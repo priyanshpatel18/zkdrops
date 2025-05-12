@@ -1,9 +1,9 @@
-import Navbar from "@/components/layouts/Navbar";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { ReactNode } from "react";
+import Navbar from '@/components/layouts/Navbar'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { ReactNode } from 'react'
 
 interface PagesLayoutProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export default async function PagesLayout({ children }: PagesLayoutProps) {
@@ -15,5 +15,5 @@ export default async function PagesLayout({ children }: PagesLayoutProps) {
         {children}
       </main>
     </div>
-  );
+  )
 }

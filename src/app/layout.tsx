@@ -1,11 +1,11 @@
-import { AppProviders } from '@/components/AppProviders';
-import { siteConfig } from '@/config/siteConfig';
-import React from 'react';
-import './globals.css';
-import "@solana/wallet-adapter-react-ui/styles.css"
-import { Toaster } from '@/components/ui/sonner';
+import { AppProviders } from '@/components/AppProviders'
+import { siteConfig } from '@/config/siteConfig'
+import React from 'react'
+import './globals.css'
+import '@solana/wallet-adapter-react-ui/styles.css'
+import { Toaster } from '@/components/ui/sonner'
 
-export const metadata = siteConfig;
+export const metadata = siteConfig
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

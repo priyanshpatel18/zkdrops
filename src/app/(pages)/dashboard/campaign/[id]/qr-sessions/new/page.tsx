@@ -1,186 +1,203 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { ArrowLeft, Check, Copy, Download, Share2 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useState } from "react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Campaign } from "@/types/types";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { toast } from "sonner";
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Campaign } from '@/types/types'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { saveAs } from "file-saver"
+import { motion } from 'framer-motion'
+import { ArrowLeft, Check, Copy, Download, Share2 } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import { QRCodeSVG } from 'qrcode.react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function NewQrSessionPage() {
-  const router = useRouter();
-  const { id } = useParams();
-  const { publicKey, connected } = useWallet();
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [maxClaims, setMaxClaims] = useState<string>("");
-  const [expiresIn, setExpiresIn] = useState("15m");
-  const [qrSessionUrl, setQrSessionUrl] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-  const [qrSessionNonce, setQrSessionNonce] = useState<string | null>(null);
-  const [isMinting, setIsMinting] = useState(false);
+  const router = useRouter()
+  const { id } = useParams()
+  const { publicKey, connected } = useWallet()
+  const [campaign, setCampaign] = useState<Campaign | null>(null)
+  const [maxClaims, setMaxClaims] = useState<string>('')
+  const [expiresIn, setExpiresIn] = useState('15m')
+  const [qrSessionUrl, setQrSessionUrl] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
+  const [qrSessionNonce, setQrSessionNonce] = useState<string | null>(null)
+  const [isMinting, setIsMinting] = useState(false)
 
   useEffect(() => {
     if (!connected) {
-      router.back();
+      router.back()
     }
   }, [connected, router])
 
   useEffect(() => {
     const fetchCampaign = async () => {
-      if (typeof id !== "string") return;
-      setIsLoading(true);
-
+      if (typeof id !== 'string') return
+      setIsLoading(true)
 
       try {
-        const res = await fetch(`/api/campaign?id=${id}`);
-        const data = await res.json();
-        const fetchedCampaign: Campaign = data.campaign;
+        const res = await fetch(`/api/campaign?id=${id}`)
+        const data = await res.json()
+        const fetchedCampaign: Campaign = data.campaign
 
-        setCampaign(fetchedCampaign);
+        setCampaign(fetchedCampaign)
       } catch (error) {
-        console.error(error);
+        console.error(error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    if (id) fetchCampaign();
-  }, [id, publicKey, connected]);
+    if (id) fetchCampaign()
+  }, [id, publicKey, connected])
 
   const handleCreateQRSession = async () => {
-    if (!id) return;
+    if (!id) return
 
     if (!maxClaims || isNaN(parseInt(maxClaims)) || parseInt(maxClaims) <= 0) {
-      toast.error("Please enter a valid maximum number of claims");
-      return;
+      toast.error('Please enter a valid maximum number of claims')
+      return
     }
 
     try {
-      setIsLoading(true);
+      setIsLoading(true)
 
       const body = {
         campaignId: id,
         maxClaims: parseInt(maxClaims),
         expiresIn,
-      };
+      }
 
       const res = await fetch(`/api/qr-session/create`, {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(body),
-        headers: { "Content-Type": "application/json" },
-      });
+        headers: { 'Content-Type': 'application/json' },
+      })
 
       if (!res.ok) {
-        toast.error("Failed to create QR session");
-        return;
+        toast.error('Failed to create QR session')
+        return
       }
 
-      const data = await res.json();
+      const data = await res.json()
 
-      setQrSessionUrl(`${window.location.origin}/claim/${data.nonce}`);
-      setQrSessionNonce(data.nonce);
+      setQrSessionUrl(`${window.location.origin}/claim/${data.nonce}`)
+      setQrSessionNonce(data.nonce)
     } catch (error) {
-      console.error(error);
+      console.error(error)
       if (error instanceof Error) {
-        toast.error(error.message);
+        toast.error(error.message)
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleMintCPOPs = async () => {
-    if (!id || !qrSessionNonce || !maxClaims) return;
+    if (!id || !qrSessionNonce || !maxClaims) return
 
     if (!publicKey) {
-      toast.error("Please connect your wallet");
-      return;
+      toast.error('Please connect your wallet')
+      return
     }
 
-    setIsMinting(true);
-    toast.success("Minting process started");
-    setIsMinting(false);
-  };
+    setIsMinting(true)
+    toast.success('Minting process started')
+    setIsMinting(false)
+  }
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(qrSessionUrl);
-    setIsCopied(true);
-    toast.success("Copied to clipboard");
-    setTimeout(() => setIsCopied(false), 2000);
-  };
+    navigator.clipboard.writeText(qrSessionUrl)
+    setIsCopied(true)
+    toast.success('Copied to clipboard')
+    setTimeout(() => setIsCopied(false), 2000)
+  }
 
   const downloadQR = () => {
-    const svg = document.querySelector("svg");
-    if (!svg) return;
+    const svg = document.querySelector('svg')
+    if (!svg) {
+      toast.error('QR code not found')
+      return
+    }
 
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d")!;
-    const img = new Image();
-    img.onload = function () {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      const pngFile = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = pngFile;
-      a.download = "qr-code.png";
-      a.click();
-      toast.success("QR code downloaded");
-    };
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
-  };
+    const svgData = new XMLSerializer().serializeToString(svg)
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      toast.error('Canvas rendering failed')
+      return
+    }
+
+    const img = new Image()
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx.drawImage(img, 0, 0)
+      canvas.toBlob((blob) => {
+        if (blob) {
+          saveAs(blob, `qr-code-${Date.now()}.png`)
+          toast.success('QR code downloaded')
+        } else {
+          toast.error('Failed to generate image blob')
+        }
+      }, 'image/png')
+    }
+
+    // Safer base64 encoding for Unicode SVGs
+    const svgBase64 = btoa(unescape(encodeURIComponent(svgData)))
+    img.src = `data:image/svg+xml;base64,${svgBase64}`
+  }
 
   const shareQRCode = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${campaign?.name} - Claim QR Code`,
-          text: "Scan this QR code to claim your collectible",
-          url: qrSessionUrl
-        });
-        toast.success("Shared successfully");
+          text: 'Scan this QR code to claim your collectible',
+          url: qrSessionUrl,
+        })
+        toast.success('Shared successfully')
       } catch (error) {
-        console.error("Error sharing:", error);
+        console.error('Error sharing:', error)
       }
     } else {
-      copyToClipboard();
+      copyToClipboard()
     }
-  };
+  }
 
   useEffect(() => {
-    if (!campaign || !publicKey || isLoading) return;
+    if (!campaign || !publicKey || isLoading) return
 
     if (!connected) {
-      router.push("/dashboard");
-      return;
+      router.push('/dashboard')
+      return
     }
 
     if (publicKey.toBase58().toLowerCase() !== campaign.organizer?.wallet.toLowerCase()) {
-      router.push(`/dashboard/campaign/${id}`);
+      router.push(`/dashboard/campaign/${id}`)
     }
-  }, [campaign, publicKey, connected, id, isLoading, router]);
+  }, [campaign, publicKey, connected, id, isLoading, router])
 
   // Format expiration time for display
   const getExpirationDisplay = () => {
     switch (expiresIn) {
-      case "15m": return "15 minutes";
-      case "1h": return "1 hour";
-      case "2h": return "2 hours";
-      case "1d": return "24 hours";
-      default: return expiresIn;
+      case '15m':
+        return '15 minutes'
+      case '1h':
+        return '1 hour'
+      case '2h':
+        return '2 hours'
+      case '1d':
+        return '24 hours'
+      default:
+        return expiresIn
     }
-  };
+  }
 
   return (
     <motion.div className="p-4 mx-auto w-full max-w-screen-md flex flex-col">
@@ -199,12 +216,7 @@ export default function NewQrSessionPage() {
           <div className="grid gap-4">
             <div className="space-y-2">
               <Label>Max Claims</Label>
-              <Input
-                type="number"
-                min="0"
-                value={maxClaims}
-                onChange={(e) => setMaxClaims(e.target.value)}
-              />
+              <Input type="number" min="0" value={maxClaims} onChange={(e) => setMaxClaims(e.target.value)} />
             </div>
 
             <div>
@@ -228,11 +240,7 @@ export default function NewQrSessionPage() {
           </Button>
         </Card>
       ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Card className="overflow-hidden">
             <CardHeader className="pb-4">
               <CardTitle className="text-center">QR Code Generated</CardTitle>
@@ -242,20 +250,11 @@ export default function NewQrSessionPage() {
             </CardHeader>
             <CardContent className="flex flex-col items-center">
               <div className="bg-white p-4 rounded-lg mb-6 shadow-sm">
-                <QRCodeSVG
-                  value={qrSessionUrl}
-                  size={240}
-                  level="H"
-                  includeMargin={true}
-                />
+                <QRCodeSVG value={qrSessionUrl} size={240} level="H" includeMargin={true} />
               </div>
 
               <div className="w-full relative mb-6">
-                <Input
-                  value={qrSessionUrl}
-                  readOnly
-                  className="pr-10 text-sm font-mono"
-                />
+                <Input value={qrSessionUrl} readOnly className="pr-10 text-sm font-mono" />
                 <Button
                   size="icon"
                   variant="ghost"
@@ -284,17 +283,13 @@ export default function NewQrSessionPage() {
             <Separator />
             <div className="w-full space-y-2 px-4">
               <Label>Mint cPOPs (compressed NFTs)</Label>
-              <Button
-                onClick={handleMintCPOPs}
-                className="w-full"
-                disabled={isMinting}
-              >
-                {isMinting ? "Minting..." : "Mint cPOPs"}
+              <Button onClick={handleMintCPOPs} className="w-full" disabled={isMinting}>
+                {isMinting ? 'Minting...' : 'Mint cPOPs'}
               </Button>
             </div>
           </Card>
         </motion.div>
       )}
     </motion.div>
-  );
+  )
 }

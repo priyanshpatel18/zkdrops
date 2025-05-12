@@ -1,21 +1,21 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { motion } from "framer-motion";
-import { Home, LayoutDashboard, Menu as MenuIcon, Plus, X } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { WalletButton } from "../solana/SolanaProvider";
+import { Button } from '@/components/ui/button'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { motion } from 'framer-motion'
+import { Home, LayoutDashboard, Menu as MenuIcon, Plus, X } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { WalletButton } from '../solana/SolanaProvider'
 
 export default function Navbar() {
-  const { connected } = useWallet();
-  const [isConnected, setIsConnected] = useState(connected);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { connected } = useWallet()
+  const [isConnected, setIsConnected] = useState(connected)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    setIsConnected(connected);
-  }, [connected]);
+    setIsConnected(connected)
+  }, [connected])
 
   return (
     <motion.nav
@@ -25,39 +25,39 @@ export default function Navbar() {
       transition={{ duration: 0.3 }}
     >
       <div className="mx-auto flex items-center justify-between relative">
-        <div className={`${isConnected ? "flex-1" : "w-8"} flex items-center`}>
+        <div className={`${isConnected ? 'flex-1' : 'w-8'} flex items-center`}>
           {isConnected && (
-            <Link
-              href="/"
-              className="text-xl font-bold text-primary flex items-center"
-            >
+            <Link href="/" className="text-xl font-bold text-primary flex items-center">
               zkDrops
             </Link>
           )}
         </div>
 
-        <div className={`${isConnected ? "hidden" : "flex-1 flex justify-center"}`}>
-          <Link
-            href="/"
-            className="text-xl font-bold text-primary flex items-center"
-          >
+        <div className={`${isConnected ? 'hidden' : 'flex-1 flex justify-center'}`}>
+          <Link href="/" className="text-xl font-bold text-primary flex items-center">
             zkDrops
           </Link>
         </div>
 
         {isConnected && (
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/dashboard" className="text-sm text-foreground hover:text-primary transition flex items-center gap-1">
+            <Link
+              href="/dashboard"
+              className="text-sm text-foreground hover:text-primary transition flex items-center gap-1"
+            >
               <Home className="h-4 w-4" /> Dashboard
             </Link>
-            <Link href="/dashboard/campaign/create" className="text-sm text-foreground hover:text-primary transition flex items-center gap-1">
+            <Link
+              href="/dashboard/campaign/create"
+              className="text-sm text-foreground hover:text-primary transition flex items-center gap-1"
+            >
               <Plus className="h-4 w-4" /> Create
             </Link>
-            <WalletButton  />
+            <WalletButton />
           </div>
         )}
 
-        <div className={`${isConnected ? "flex-none" : "w-8"} flex items-center gap-2`}>
+        <div className={`${isConnected ? 'flex-none' : 'w-8'} flex items-center gap-2`}>
           {isConnected && (
             <div className="md:hidden">
               <Button
@@ -107,5 +107,5 @@ export default function Navbar() {
         </motion.div>
       )}
     </motion.nav>
-  );
+  )
 }

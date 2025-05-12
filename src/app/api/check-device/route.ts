@@ -1,16 +1,14 @@
-import prisma from "@/lib/prismaConfig";
-import { NextRequest, NextResponse } from "next/server";
+import prisma from '@/lib/prismaConfig'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(
-  req: NextRequest,
-) {
+export async function GET(req: NextRequest) {
   try {
-    const searchParams = req.nextUrl.searchParams;
-    const fingerprint = searchParams.get("fingerprint");
-    const campaignId = searchParams.get("campaignId");
+    const searchParams = req.nextUrl.searchParams
+    const fingerprint = searchParams.get('fingerprint')
+    const campaignId = searchParams.get('campaignId')
 
     if (!fingerprint || !campaignId) {
-      return NextResponse.json({ message: "Missing required parameters" }, { status: 400 });
+      return NextResponse.json({ message: 'Missing required parameters' }, { status: 400 })
     }
 
     const existingClaim = await prisma.claim.findFirst({
@@ -18,13 +16,16 @@ export async function GET(
         campaignId: campaignId as string,
         deviceHash: fingerprint as string,
       },
-    });
-    return NextResponse.json({
-      hasClaimed: !!existingClaim,
-      timestamp: existingClaim?.createdAt || null,
-    }, { status: 200 });
+    })
+    return NextResponse.json(
+      {
+        hasClaimed: !!existingClaim,
+        timestamp: existingClaim?.createdAt || null,
+      },
+      { status: 200 },
+    )
   } catch (error) {
-    console.error("Check device error:", error);
-    return NextResponse.json({ message: "Failed to check device" }, { status: 500 });
+    console.error('Check device error:', error)
+    return NextResponse.json({ message: 'Failed to check device' }, { status: 500 })
   }
 }
