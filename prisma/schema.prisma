@@ -9,13 +9,14 @@ datasource db {
 }
 
 model Organizer {
-  id        String     @id @default(cuid())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  wallet    String?    @unique
-  email     String?    @unique
-  campaigns Campaign[]
-  claims    Claim[]
+  id         String     @id @default(cuid())
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  wallet     String?    @unique
+  email      String?    @unique
+  merkleTree String?
+  campaigns  Campaign[]
+  claims     Claim[]
 }
 
 model Campaign {
