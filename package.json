@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "postinstall": "prisma generate",
     "ci": "npm run build && npm run lint && npm run format:check",
     "dev": "next dev --turbopack",
     "format": "prettier --write .",
