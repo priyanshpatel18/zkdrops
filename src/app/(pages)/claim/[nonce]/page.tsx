@@ -37,6 +37,7 @@ export default function ClaimPage() {
   const [error, setError] = useState<string | null>(null)
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null)
   const { connected, publicKey } = useWallet();
+  const [mintAddress, setMintAddress] = useState<string | null>(null);
 
   // 1. Fetch session info
   useEffect(() => {
@@ -189,8 +190,6 @@ export default function ClaimPage() {
         publicSignals: zkProof.publicSignals,
       }
 
-      console.log(payload)
-
       const res = await fetch('/api/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -237,6 +236,7 @@ export default function ClaimPage() {
         if (data.status === 'CLAIMED') {
           setStatus(CLAIM_STATUSES.CLAIMED)
           toast.success('NFT successfully minted! 🎉')
+          setMintAddress(data.mintAddress)
         } else if (data.status === 'FAILED') {
           setStatus(CLAIM_STATUSES.FAILED)
           setError('Minting process failed')
@@ -724,9 +724,11 @@ export default function ClaimPage() {
                         <Button variant="outline" onClick={() => router.push('/my-claims')}>
                           View My Claims
                         </Button>
-                        <Button onClick={() => window.open(`https://explorer.solana.com/tx/${claimId}`, '_blank')}>
-                          View on Explorer
-                        </Button>
+                        {mintAddress && (
+                          <Button onClick={() => window.open(`https://explorer.solana.com/account/${mintAddress}`, '_blank')}>
+                            View on Explorer
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}

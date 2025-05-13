@@ -41,39 +41,37 @@ model Campaign {
 }
 
 model Claim {
-  id                    String      @id @default(cuid())
-  createdAt             DateTime    @default(now())
-  organizerId           String?
-  organizer             Organizer?  @relation(fields: [organizerId], references: [id])
-  campaignId            String
-  campaign              Campaign    @relation(fields: [campaignId], references: [id])
-  zkProofId             String?
-  zkProof               ZKProof?    @relation(fields: [zkProofId], references: [id])
-  status                ClaimStatus @default(PENDING)
-  claimedAt             DateTime?
-  wallet                String?
-  compressedMintAddress String?
-  compressedTokenId     String?
-  qrSessionId           String?
-  qrSession             QRSession?  @relation(fields: [qrSessionId], references: [id])
-  deviceHash            String?
-  geoRegion             String?
-  Token                 Token?      @relation(fields: [tokenId], references: [id])
-  tokenId               String?
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  organizerId String?
+  organizer   Organizer?  @relation(fields: [organizerId], references: [id])
+  campaignId  String
+  campaign    Campaign    @relation(fields: [campaignId], references: [id])
+  zkProofId   String?
+  zkProof     ZKProof?    @relation(fields: [zkProofId], references: [id])
+  status      ClaimStatus @default(PENDING)
+  claimedAt   DateTime?
+  wallet      String?
+  mintAddress String?
+  qrSessionId String?
+  qrSession   QRSession?  @relation(fields: [qrSessionId], references: [id])
+  deviceHash  String?
+  geoRegion   String?
+  token       Token?      @relation(fields: [tokenId], references: [id])
+  tokenId     String?
 }
 
 model Token {
-  id              String     @id @default(cuid())
-  mintAddress     String     @unique
-  metadataUri     String
-  isCompressed    Boolean    @default(false)
-  available       Boolean    @default(true)
-  campaignId      String
-  campaign        Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  qrSessionId     String?
-  qrSession       QRSession? @relation(fields: [qrSessionId], references: [id])
-  compressedProof Json?
-  claim           Claim[]
+  id           String     @id @default(cuid())
+  mintAddress  String     @unique
+  metadataUri  String
+  isCompressed Boolean    @default(false)
+  available    Boolean    @default(true)
+  campaignId   String
+  campaign     Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  qrSessionId  String?
+  qrSession    QRSession? @relation(fields: [qrSessionId], references: [id])
+  claim        Claim[]
 }
 
 model ZKProof {

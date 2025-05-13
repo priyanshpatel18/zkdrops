@@ -1,4 +1,5 @@
 import prisma from '@/lib/prismaConfig'
+import { mintNFT } from '@/lib/pushToQueue'
 import { claimSchema } from '@/lib/zod'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -32,8 +33,13 @@ export async function POST(request: NextRequest) {
         deviceHash: data.deviceHash,
         geoRegion: data.geoRegion,
         zkProofId: zkProof.id,
+        wallet: data.walletAddress,
+        qrSessionId: session.id,
+        organizerId: session.campaign.organizerId,
       },
     })
+
+    await mintNFT({ claimId: claim.id });
 
     return NextResponse.json({ claim }, { status: 200 })
   } catch (e) {
