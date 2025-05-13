@@ -24,8 +24,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Campaign } from '@/types/types'
+import { QRSessionExpiry } from '@prisma/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -48,12 +50,31 @@ export default function CampaignPage() {
   })
 
   const activeQrSession = useMemo(() => {
-    const now = new Date()
+    const now = new Date();
+    if (!campaign?.qrSessions) return null;
 
-    if (!campaign?.qrSessions) return null
+    const getExpiresAt = (createdAt: Date, expiry: QRSessionExpiry): Date | null => {
+      const created = createdAt;
+      switch (expiry) {
+        case QRSessionExpiry.TWELVE_HOURS:
+          return new Date(created.getTime() + 12 * 60 * 60 * 1000);
+        case QRSessionExpiry.ONE_DAY:
+          return new Date(created.getTime() + 24 * 60 * 60 * 1000);
+        case QRSessionExpiry.TWO_DAY:
+          return new Date(created.getTime() + 48 * 60 * 60 * 1000);
+        case QRSessionExpiry.NEVER:
+          return null;
+        default:
+          return null;
+      }
+    };
 
-    return campaign.qrSessions.find((session) => new Date(session.expiresAt) >= now)
-  }, [campaign])
+    return campaign.qrSessions.find((session) => {
+      const expiresAt = getExpiresAt(new Date(session.createdAt), session.expiry);
+      return !expiresAt || expiresAt >= now;
+    });
+  }, [campaign]);
+
 
   useEffect(() => {
     if (!campaign || !campaign.endsAt) return
@@ -145,17 +166,17 @@ export default function CampaignPage() {
   const downloadQR = async (campaign: Campaign) => {
     try {
       const response = await fetch(campaign.qrCodeUrl)
-  
+
       // Optional: Add a MIME type check to reduce risk
       const contentType = response.headers.get('content-type')
       if (!contentType?.includes('image')) {
         throw new Error('Unexpected content type')
       }
-  
+
       const blob = await response.blob()
       const filename = `${campaign.name || 'qr-code'}-${Date.now()}.png`
       saveAs(blob, filename)
-  
+
       toast.success('QR code downloaded')
     } catch (error) {
       console.error('QR code download failed:', error)
@@ -347,14 +368,18 @@ export default function CampaignPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      {campaign.endsAt ? (
+                      {!campaign ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-6 w-[200px]" />
+                          <Skeleton className="h-4 w-[160px]" />
+                        </div>
+                      ) : campaign.endsAt ? (
                         <>
                           <p className="font-bold text-lg font-mono">
-                            {`${String(countdown.days).padStart(2, '0')}d ${String(countdown.hours).padStart(2, '0')}h ${String(countdown.minutes).padStart(2, '0')}m ${String(countdown.seconds).padStart(2, '0')}`}
-                            s left
+                            {`${String(countdown.days).padStart(2, '0')}d ${String(countdown.hours).padStart(2, '0')}h ${String(countdown.minutes).padStart(2, '0')}m ${String(countdown.seconds).padStart(2, '0')}s left`}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {campaign.startsAt ? `Starts  ${formatDate(campaign.startsAt)}` : 'No start date'}
+                            {campaign.startsAt ? `Starts ${formatDate(campaign.startsAt)}` : 'No start date'}
                           </p>
                         </>
                       ) : (
@@ -404,7 +429,6 @@ export default function CampaignPage() {
                     <div className="space-y-4">
                       <h3 className="font-medium">Owner Actions</h3>
 
-                      {/* QR Analytics Section */}
                       {campaign.qrSessions && campaign.qrSessions?.length > 0 && (
                         <Card className="bg-muted/30">
                           <CardHeader>
@@ -417,7 +441,6 @@ export default function CampaignPage() {
                             <p>
                               <strong>Total Sessions:</strong> {campaign.qrSessions.length}
                             </p>
-                            {/* <p><strong>Total Claims:</strong> {campaign.qrSessions.reduce((acc, s) => acc + s.claimsCount, 0)}</p> */}
                           </CardContent>
                         </Card>
                       )}
@@ -446,13 +469,12 @@ export default function CampaignPage() {
                         {activeQrSession ? (
                           <Button
                             onClick={() => {
-                              toast.info('Feature coming soon')
-                              // router.push(`/dashboard/campaign/${id}/qr-sessions/${activeQrSession.id}/edit`)
+                              router.push(`/dashboard/campaign/${id}/qr-sessions/${activeQrSession.id}`)
                             }}
                             className="gap-2"
                           >
                             <QrCode className="h-4 w-4" />
-                            <span>Edit QR Session</span>
+                            <span>View QR Session</span>
                           </Button>
                         ) : (
                           <Button

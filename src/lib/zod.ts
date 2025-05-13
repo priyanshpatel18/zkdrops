@@ -19,7 +19,7 @@ export const createQrSessionSchema = z.object({
     .number({ invalid_type_error: 'maxClaims must be a number' })
     .int('maxClaims must be an integer')
     .positive('maxClaims must be greater than 0'),
-  expiresIn: z.enum(['15m', '1h', '2h', '1d'], {
+  expiresIn: z.enum(['TWELVE_HOURS', 'ONE_DAY', 'TWO_DAY', 'NEVER'], {
     errorMap: () => ({ message: 'Invalid expiration option' }),
   }),
 })

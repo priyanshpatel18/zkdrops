@@ -87,10 +87,17 @@ model QRSession {
   campaignId String
   campaign   Campaign @relation(fields: [campaignId], references: [id])
   createdAt  DateTime @default(now())
-  expiresAt  DateTime
+  expiry     QRSessionExpiry
   maxClaims  Int      @default(1)
   nonce      String   @unique
   claims     Claim[]
+}
+
+enum QRSessionExpiry {
+  TWELVE_HOURS
+  ONE_DAY
+  TWO_DAY
+  NEVER
 }
 
 enum ClaimStatus {

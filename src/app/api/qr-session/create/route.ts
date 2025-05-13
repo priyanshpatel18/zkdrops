@@ -2,19 +2,7 @@ import prisma from '@/lib/prismaConfig'
 import { createQrSessionSchema } from '@/lib/zod'
 import { NextRequest, NextResponse } from 'next/server'
 import { nanoid } from 'nanoid'
-
-const calculateExpiry = (expiresIn: string): Date => {
-  const now = new Date()
-  const units: Record<string, number> = {
-    '15m': 15 * 60 * 1000,
-    '1h': 60 * 60 * 1000,
-    '2h': 2 * 60 * 60 * 1000,
-    '1d': 24 * 60 * 60 * 1000,
-  }
-  const durationMs = units[expiresIn]
-  if (!durationMs) throw new Error('Invalid expiresIn value')
-  return new Date(now.getTime() + durationMs)
-}
+import { QRSessionExpiry } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -26,19 +14,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
     }
 
-    const expiresAt = calculateExpiry(expiresIn)
     const nonce = nanoid()
 
     const qrSession = await prisma.qRSession.create({
       data: {
         campaignId,
-        expiresAt: expiresAt.toISOString(),
+        expiry: QRSessionExpiry[expiresIn],
         maxClaims,
         nonce,
       },
     })
 
-    return NextResponse.json({ nonce: qrSession.nonce }, { status: 200 })
+    return NextResponse.json({ nonce: qrSession.nonce, id: qrSession.id }, { status: 200 })
   } catch (error) {
     console.error(error)
     return NextResponse.json(

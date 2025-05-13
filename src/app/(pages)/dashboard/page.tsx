@@ -157,7 +157,7 @@ export default function DashboardPage() {
                 onClick={handleConnect}
               >
                 <span className="absolute inset-[-150%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#393BB2_0%,#E2CBFF_50%,#393BB2_100%)]" />
-                <span className="relative z-10 inline-flex h-full w-full items-center justify-center rounded-full bg-white dark:bg-slate-950 px-5 py-2 text-sm font-medium text-slate-900 dark:text-white backdrop-blur-md hover:opacity-90 transition">
+                <span className="relative z-10 inline-flex h-full w-full items-center justify-center rounded-full bg-background px-5 py-2 text-sm font-medium backdrop-blur-md hover:opacity-90 transition">
                   Connect Wallet
                 </span>
               </button>

@@ -4,17 +4,13 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
-
-    // Extract the address from the pathname
     const address = url.pathname.split('/').pop()
 
     if (!address) {
       return NextResponse.json({ error: 'Missing address' }, { status: 400 })
     }
-
-    if (!address) {
-      return NextResponse.json({ error: 'Missing address' }, { status: 400 })
-    }
+    console.log(address);
+    
 
     const campaigns = await prisma.campaign.findMany({
       where: {
