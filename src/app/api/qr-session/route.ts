@@ -10,7 +10,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing campaign nonce' }, { status: 400 })
     }
 
-    const session = await prisma.qRSession.findFirst({ where: { nonce }, include: { campaign: true, claims: true } })
+    const session = await prisma.qRSession.findFirst({
+      where: { nonce }, include: {
+        campaign: {
+          include: {
+            organizer: true
+          }
+        },
+        claims: true
+      }
+    })
 
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })

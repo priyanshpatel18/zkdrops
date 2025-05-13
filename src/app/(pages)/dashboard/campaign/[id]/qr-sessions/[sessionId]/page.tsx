@@ -132,44 +132,56 @@ export default function QRSessionPage() {
     }
 
     const connection = new Connection(RPC_ENDPOINT);
-    const vault = new PublicKey(vaultPublicKey);
+    try {
+      const vault = new PublicKey(vaultPublicKey);
 
-    const transaction = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey: publicKey,
-        toPubkey: vault,
-        lamports,
-      })
-    );
-    const { blockhash } = await connection.getLatestBlockhash();
-    transaction.feePayer = publicKey;
-    transaction.recentBlockhash = blockhash;
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: vault,
+          lamports,
+        })
+      );
+      const { blockhash } = await connection.getLatestBlockhash();
+      transaction.feePayer = publicKey;
+      transaction.recentBlockhash = blockhash;
 
-    const signature = await signTransaction(transaction);
-
-    const txSignature = await connection.sendRawTransaction(signature.serialize())
-    const result = await connection.confirmTransaction(txSignature, 'confirmed')
-
-    if (result.value.err) {
-      toast.error('Transaction failed')
-    } else {
-      const connection = new Connection(RPC_ENDPOINT);
-      const balance = await connection.getBalance(new PublicKey(qrSession?.vault[0].publicKey));
-      if (balance <= Number(qrSession?.vault[0].costInSol) * 10 ** 9) {
-        toast.error('Transaction failed')
+      const simulationResult = await connection.simulateTransaction(transaction);
+      if (simulationResult.value.err) {
+        toast.error('Transaction simulation failed');
         return;
       }
-      await fetch("/api/vault", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vaultId: qrSession?.vault[0].id,
-          vaultPublicKey: qrSession?.vault[0].publicKey,
-        }),
-      });
 
-      fetchQRSession()
-      toast.success('NFT Minting Started');
+      const signature = await signTransaction(transaction);
+      const txSignature = await connection.sendRawTransaction(signature.serialize());
+      const result = await connection.confirmTransaction(txSignature, 'confirmed');
+      if (result.value.err) {
+        toast.error('Transaction failed')
+      } else {
+        const connection = new Connection(RPC_ENDPOINT);
+        const balance = await connection.getBalance(new PublicKey(qrSession?.vault[0].publicKey));
+        if (balance <= Number(qrSession?.vault[0].costInSol) * 10 ** 9) {
+          toast.error('Transaction failed')
+          return;
+        }
+        await fetch("/api/vault", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vaultId: qrSession?.vault[0].id,
+            vaultPublicKey: qrSession?.vault[0].publicKey,
+          }),
+        });
+
+        await fetchQRSession()
+        toast.success('NFT Minting Started');
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message)
+      }
+    } finally {
+      setIsMinting(false);
     }
   }
 
@@ -220,39 +232,32 @@ export default function QRSessionPage() {
     }
   }
 
-  const downloadQR = () => {
-    const svg = document.querySelector('svg')
-    if (!svg) {
-      toast.error('QR code not found')
-      return
-    }
+  const downloadQR = async () => {
+    try {
+      if (!qrSession || !qrSession.campaign) {
+        return;
+      }
 
-    const svgData = new XMLSerializer().serializeToString(svg)
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    if (!ctx) {
-      toast.error('Canvas rendering failed')
-      return
-    }
+      if (!qrSession.campaign.qrCodeUrl) {
+        throw new Error('QR Code URL is not available');
+      }
+      const response = await fetch(qrSession.campaign.qrCodeUrl);
 
-    const img = new Image()
-    img.onload = () => {
-      canvas.width = img.width
-      canvas.height = img.height
-      ctx.drawImage(img, 0, 0)
-      canvas.toBlob((blob) => {
-        if (blob) {
-          saveAs(blob, `qr-code-${Date.now()}.png`)
-          toast.success('QR code downloaded')
-        } else {
-          toast.error('Failed to generate image blob')
-        }
-      }, 'image/png')
-    }
+      // Optional: Add a MIME type check to reduce risk
+      const contentType = response.headers.get('content-type')
+      if (!contentType?.includes('image')) {
+        throw new Error('Unexpected content type')
+      }
 
-    // Safer base64 encoding for Unicode SVGs
-    const svgBase64 = btoa(unescape(encodeURIComponent(svgData)))
-    img.src = `data:image/svg+xml;base64,${svgBase64}`
+      const blob = await response.blob()
+      const filename = `${qrSession.campaign.name || 'qr-code'}-${Date.now()}.png`
+      saveAs(blob, filename)
+
+      toast.success('QR code downloaded')
+    } catch (error) {
+      console.error('QR code download failed:', error)
+      toast.error('Failed to download QR code')
+    }
   }
 
   if (isLoading && !qrSession) {

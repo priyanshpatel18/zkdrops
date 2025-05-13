@@ -7,17 +7,21 @@ import { Progress } from '@/components/ui/progress'
 import { generateProof, getDeviceInfo } from '@/lib/claim'
 import { cn } from '@/lib/utils'
 import { CLAIM_STATUSES, DeviceInfo, Proof } from '@/types/types'
-import { Campaign, Claim, QRSession } from '@prisma/client'
+import { Campaign, Claim, Organizer, QRSession } from '@prisma/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AlertCircle, CheckCircle, Fingerprint, Loader2, MapPin, Shield, XCircle } from 'lucide-react'
+import { AlertCircle, AlertTriangle, CheckCircle, Fingerprint, Loader2, MapPin, Shield, XCircle } from 'lucide-react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+interface CampaignType extends Campaign {
+  organizer: Organizer
+}
+
 interface Session extends QRSession {
-  campaign: Campaign
+  campaign: CampaignType
   claims: Claim[]
 }
 
@@ -32,7 +36,7 @@ export default function ClaimPage() {
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null)
-  const { connected, publicKey } = useWallet()
+  const { connected, publicKey } = useWallet();
 
   // 1. Fetch session info
   useEffect(() => {
@@ -81,7 +85,7 @@ export default function ClaimPage() {
     }
 
     fetchSession()
-  }, [nonce])
+  }, [nonce, publicKey])
 
   // 2. Connect wallet function
   useEffect(() => {
@@ -343,6 +347,17 @@ export default function ClaimPage() {
     return currentStep === step
   }
 
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading session...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="h-[calc(100vh-4rem)]">
       <main className="flex-1 h-full max-w-md mx-auto p-4 flex flex-col items-center justify-center">
@@ -373,407 +388,421 @@ export default function ClaimPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <AnimatePresence mode="wait">
-              <motion.div
-                key={status}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                {/* Horizontal Steps Indicator */}
-                <div className="flex flex-wrap gap-2 justify-between mb-6 mt-2">
-                  {/* Step 1: Wallet */}
-                  <div className={cn('flex flex-col items-center', isStepActive(1) && 'text-primary')}>
+              {session.campaign.organizer.wallet !== publicKey?.toBase58() ? (
+                <motion.div
+                  key={status}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex flex-wrap gap-2 justify-between mb-6 mt-2">
+                    <div className={cn('flex flex-col items-center', isStepActive(1) && 'text-primary')}>
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center border-2',
+                          isStepActive(1)
+                            ? 'border-primary bg-primary/10'
+                            : isStepCompleted(1)
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-300',
+                        )}
+                      >
+                        {isStepCompleted(1) ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <span className="text-sm">1</span>
+                        )}
+                      </div>
+                      <span className="text-xs mt-1">Wallet</span>
+                    </div>
+
+                    {/* Step 2: Device */}
+                    <div className={cn('flex flex-col items-center', isStepActive(2) && 'text-primary')}>
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center border-2',
+                          isStepActive(2)
+                            ? 'border-primary bg-primary/10'
+                            : isStepCompleted(2)
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-300',
+                        )}
+                      >
+                        {isStepCompleted(2) ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <span className="text-sm">2</span>
+                        )}
+                      </div>
+                      <span className="text-xs mt-1">Device</span>
+                    </div>
+
+                    {/* Step 3: Proof */}
+                    <div className={cn('flex flex-col items-center', isStepActive(3) && 'text-primary')}>
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center border-2',
+                          isStepActive(3)
+                            ? 'border-primary bg-primary/10'
+                            : isStepCompleted(3)
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-300',
+                        )}
+                      >
+                        {isStepCompleted(3) ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <span className="text-sm">3</span>
+                        )}
+                      </div>
+                      <span className="text-xs mt-1">Proof</span>
+                    </div>
+
+                    {/* Step 4: Mint */}
                     <div
                       className={cn(
-                        'w-8 h-8 rounded-full flex items-center justify-center border-2',
-                        isStepActive(1)
-                          ? 'border-primary bg-primary/10'
-                          : isStepCompleted(1)
-                            ? 'border-green-500 bg-green-50'
-                            : 'border-gray-300',
+                        'flex flex-col items-center',
+                        isStepActive(4) && 'text-primary',
+                        isStepActive(5) && (status === CLAIM_STATUSES.CLAIMED ? 'text-green-500' : 'text-red-500'),
                       )}
                     >
-                      {isStepCompleted(1) ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <span className="text-sm">1</span>
-                      )}
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center border-2',
+                          isStepActive(4)
+                            ? 'border-primary bg-primary/10'
+                            : status === CLAIM_STATUSES.CLAIMED
+                              ? 'border-green-500 bg-green-50'
+                              : status === CLAIM_STATUSES.FAILED
+                                ? 'border-red-500 bg-red-50'
+                                : isStepCompleted(4)
+                                  ? 'border-green-500 bg-green-50'
+                                  : 'border-gray-300',
+                        )}
+                      >
+                        {status === CLAIM_STATUSES.CLAIMED ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : status === CLAIM_STATUSES.FAILED ? (
+                          <XCircle className="h-4 w-4 text-red-500" />
+                        ) : isStepCompleted(4) ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <span className="text-sm">4</span>
+                        )}
+                      </div>
+                      <span className="text-xs mt-1">Mint</span>
                     </div>
-                    <span className="text-xs mt-1">Wallet</span>
                   </div>
 
-                  {/* Step 2: Device */}
-                  <div className={cn('flex flex-col items-center', isStepActive(2) && 'text-primary')}>
-                    <div
-                      className={cn(
-                        'w-8 h-8 rounded-full flex items-center justify-center border-2',
-                        isStepActive(2)
-                          ? 'border-primary bg-primary/10'
-                          : isStepCompleted(2)
-                            ? 'border-green-500 bg-green-50'
-                            : 'border-gray-300',
+                  {/* Status message */}
+                  {getStatusMessage() && (
+                    <div className="flex items-center justify-center space-x-2 my-4">
+                      {[
+                        CLAIM_STATUSES.CONNECTING_WALLET,
+                        CLAIM_STATUSES.COLLECTING_DEVICE_INFO,
+                        CLAIM_STATUSES.GENERATING_PROOF,
+                        CLAIM_STATUSES.SUBMITTING,
+                        CLAIM_STATUSES.SUBMITTED,
+                      ].includes(status) && (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-sm">{getStatusMessage()}</span>
+                          </>
+                        )}
+                      {[
+                        CLAIM_STATUSES.WALLET_CONNECTED,
+                        CLAIM_STATUSES.DEVICE_INFO_COLLECTED,
+                        CLAIM_STATUSES.PROOF_READY,
+                      ].includes(status) && (
+                          <>
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span className="text-sm text-green-500">{getStatusMessage()}</span>
+                          </>
+                        )}
+                      {status === CLAIM_STATUSES.CLAIMED && (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          <span className="text-sm text-green-500">{getStatusMessage()}</span>
+                        </>
                       )}
-                    >
-                      {isStepCompleted(2) ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <span className="text-sm">2</span>
+                      {status === CLAIM_STATUSES.FAILED && (
+                        <>
+                          <XCircle className="h-4 w-4 text-red-500" />
+                          <span className="text-sm text-red-500">{getStatusMessage()}</span>
+                        </>
                       )}
                     </div>
-                    <span className="text-xs mt-1">Device</span>
-                  </div>
+                  )}
 
-                  {/* Step 3: Proof */}
-                  <div className={cn('flex flex-col items-center', isStepActive(3) && 'text-primary')}>
-                    <div
-                      className={cn(
-                        'w-8 h-8 rounded-full flex items-center justify-center border-2',
-                        isStepActive(3)
-                          ? 'border-primary bg-primary/10'
-                          : isStepCompleted(3)
-                            ? 'border-green-500 bg-green-50'
-                            : 'border-gray-300',
-                      )}
-                    >
-                      {isStepCompleted(3) ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <span className="text-sm">3</span>
-                      )}
+                  {/* Progress bar */}
+                  {[CLAIM_STATUSES.COLLECTING_DEVICE_INFO, CLAIM_STATUSES.GENERATING_PROOF].includes(status) && (
+                    <div className="space-y-1 mt-2">
+                      <Progress value={progress} className="h-2" />
                     </div>
-                    <span className="text-xs mt-1">Proof</span>
-                  </div>
+                  )}
 
-                  {/* Step 4: Mint */}
-                  <div
-                    className={cn(
-                      'flex flex-col items-center',
-                      isStepActive(4) && 'text-primary',
-                      isStepActive(5) && (status === CLAIM_STATUSES.CLAIMED ? 'text-green-500' : 'text-red-500'),
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'w-8 h-8 rounded-full flex items-center justify-center border-2',
-                        isStepActive(4)
-                          ? 'border-primary bg-primary/10'
-                          : status === CLAIM_STATUSES.CLAIMED
-                            ? 'border-green-500 bg-green-50'
-                            : status === CLAIM_STATUSES.FAILED
-                              ? 'border-red-500 bg-red-50'
-                              : isStepCompleted(4)
-                                ? 'border-green-500 bg-green-50'
-                                : 'border-gray-300',
-                      )}
-                    >
-                      {status === CLAIM_STATUSES.CLAIMED ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : status === CLAIM_STATUSES.FAILED ? (
-                        <XCircle className="h-4 w-4 text-red-500" />
-                      ) : isStepCompleted(4) ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <span className="text-sm">4</span>
-                      )}
+                  {/* STEP 0: IDLE / START */}
+                  {status === CLAIM_STATUSES.IDLE && (
+                    <div className="text-center space-y-4 flex flex-col items-center">
+                      <p className="text-sm text-muted-foreground">
+                        To claim your NFT, we&apos;ll need to connect your wallet and verify your device to prevent
+                        duplicates.
+                      </p>
+                      <WalletButton />
                     </div>
-                    <span className="text-xs mt-1">Mint</span>
+                  )}
+
+                  {/* STEP 1: WALLET CONNECTED */}
+                  {status === CLAIM_STATUSES.WALLET_CONNECTED && (
+                    <div className="space-y-4">
+                      <div className="p-3 bg-green-50 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <p className="text-sm text-green-700 break-all">Wallet connected: {publicKey?.toBase58()}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground text-center">
+                        Next, we need to verify your device to prevent duplicate claims.
+                      </p>
+                      <Button onClick={collectDeviceInfo} className="w-full" size="lg">
+                        Verify Device
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* STEP 2: DEVICE INFO COLLECTED */}
+                  {status === CLAIM_STATUSES.DEVICE_INFO_COLLECTED && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="p-3 bg-green-50 rounded-md">
+                          <div className="flex items-start gap-2">
+                            <Fingerprint className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-green-700">Device verified</p>
+                              <p className="text-xs text-green-600 opacity-80">
+                                Fingerprint: {deviceInfo?.fingerprint.substring(0, 8)}...
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className={cn('p-3 rounded-md', deviceInfo?.geolocation ? 'bg-green-50' : 'bg-amber-50')}>
+                          <div className="flex items-start gap-2">
+                            <MapPin
+                              className={cn(
+                                'h-4 w-4 flex-shrink-0 mt-0.5',
+                                deviceInfo?.geolocation ? 'text-green-500' : 'text-amber-500',
+                              )}
+                            />
+                            <div>
+                              <p
+                                className={cn(
+                                  'text-sm font-medium',
+                                  deviceInfo?.geolocation ? 'text-green-700' : 'text-amber-700',
+                                )}
+                              >
+                                {deviceInfo?.geolocation ? 'Location verified' : 'Location not provided'}
+                              </p>
+                              {deviceInfo?.geolocation && (
+                                <p className="text-xs text-green-600 opacity-80">
+                                  Coordinates: {deviceInfo.geolocation.latitude.toFixed(2)},{' '}
+                                  {deviceInfo.geolocation.longitude.toFixed(2)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-sm text-muted-foreground text-center">
+                        Device verified! Now generate a zero-knowledge proof to claim your NFT.
+                      </p>
+                      <Button onClick={generateZKProof} className="w-full" size="lg">
+                        Generate ZK Proof
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* STEP 3: PROOF READY */}
+                  {status === CLAIM_STATUSES.PROOF_READY && (
+                    <div className="space-y-4">
+                      <div className="p-3 bg-green-50 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium text-green-700">Zero-Knowledge Proof Generated</p>
+                            <p className="text-xs text-green-600 opacity-80">Your proof is ready for submission</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-slate-50 rounded-md">
+                        <p className="text-xs text-slate-600 font-mono break-all">
+                          <span className="font-medium">Proof Hash:</span> {zkProof?.proof?.pi_a[0].substring(0, 12)}...
+                        </p>
+                      </div>
+
+                      <p className="text-sm text-muted-foreground text-center">
+                        Your zero-knowledge proof is ready. This proves your eligibility without revealing sensitive
+                        information.
+                      </p>
+                      <Button onClick={submitClaim} className="w-full" size="lg">
+                        Submit & Claim NFT
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* STEP 4: SUBMITTED */}
+                  {(status === CLAIM_STATUSES.SUBMITTED || status === CLAIM_STATUSES.SUBMITTING) && (
+                    <div className="text-center space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        {status === CLAIM_STATUSES.SUBMITTING
+                          ? 'Submitting your claim...'
+                          : 'Your NFT is being minted on-chain. This may take a few moments.'}
+                      </p>
+
+                      <div className="grid grid-cols-1 gap-2 mt-4">
+                        {claimId && (
+                          <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
+                            <p className="text-xs text-muted-foreground font-medium">Claim ID:</p>
+                            <p className="text-xs font-mono break-all">{claimId}</p>
+                          </div>
+                        )}
+
+                        {publicKey && (
+                          <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
+                            <p className="text-xs text-muted-foreground font-medium">Wallet Address:</p>
+                            <p className="text-xs font-mono break-all">{publicKey?.toBase58()}</p>
+                          </div>
+                        )}
+
+                        {deviceInfo && (
+                          <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
+                            <p className="text-xs text-muted-foreground font-medium">Device ID:</p>
+                            <p className="text-xs font-mono break-all">{deviceInfo.fingerprint.substring(0, 16)}...</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 5: CLAIMED - SUCCESS */}
+                  {status === CLAIM_STATUSES.CLAIMED && (
+                    <div className="text-center space-y-4">
+                      <motion.div
+                        initial={{ scale: 0, rotate: -10 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', duration: 0.6 }}
+                      >
+                        <div className="mx-auto h-28 w-28 rounded-xl bg-green-50 flex items-center justify-center mb-2">
+                          <CheckCircle className="h-14 w-14 text-green-500" />
+                        </div>
+                      </motion.div>
+                      <div>
+                        <h3 className="font-medium text-lg">Success! 🎉</h3>
+                        <p className="text-sm text-muted-foreground">Your NFT has been minted successfully</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-2 mt-4">
+                        {publicKey && (
+                          <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
+                            <p className="text-xs text-muted-foreground font-medium">Wallet Address:</p>
+                            <p className="text-xs font-mono break-all">{publicKey?.toBase58()}</p>
+                          </div>
+                        )}
+
+                        {claimId && (
+                          <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
+                            <p className="text-xs text-muted-foreground font-medium">Transaction:</p>
+                            <p className="text-xs font-mono break-all">{claimId}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 justify-center mt-2">
+                        <Button variant="outline" onClick={() => router.push('/my-claims')}>
+                          View My Claims
+                        </Button>
+                        <Button onClick={() => window.open(`https://explorer.solana.com/tx/${claimId}`, '_blank')}>
+                          View on Explorer
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 5: FAILED */}
+                  {status === CLAIM_STATUSES.FAILED && (
+                    <div className="text-center space-y-4">
+                      <div className="mx-auto h-28 w-28 rounded-xl bg-red-50 flex items-center justify-center mb-2">
+                        <XCircle className="h-14 w-14 text-red-500" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-lg text-red-500">Minting Failed</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {error || 'There was an error processing your claim'}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setStatus(CLAIM_STATUSES.IDLE)
+                          setError(null)
+                          setZkProof(null)
+                          setClaimId(null)
+                          setDeviceInfo(null)
+                          setProgress(0)
+                        }}
+                      >
+                        Start Over
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* ERROR STATE - but can continue */}
+                  {status === CLAIM_STATUSES.ERROR && (
+                    <div className="text-center space-y-4">
+                      <div className="mx-auto h-20 w-20 rounded-xl bg-amber-50 flex items-center justify-center mb-2">
+                        <AlertCircle className="h-10 w-10 text-amber-500" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-amber-500">Something went wrong</h3>
+                        <p className="text-sm text-muted-foreground">{error || 'There was an error with your request'}</p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          // Depending on what failed, we might want to go back to a different step
+                          if (!publicKey) {
+                            setStatus(CLAIM_STATUSES.IDLE)
+                          } else if (!deviceInfo) {
+                            setStatus(CLAIM_STATUSES.WALLET_CONNECTED)
+                          } else if (!zkProof) {
+                            setStatus(CLAIM_STATUSES.DEVICE_INFO_COLLECTED)
+                          } else {
+                            setStatus(CLAIM_STATUSES.PROOF_READY)
+                          }
+                          setError(null)
+                        }}
+                      >
+                        Try Again
+                      </Button>
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <div className="text-center space-y-4 flex flex-col items-center">
+                  <div className="mx-auto h-20 w-20 rounded-xl bg-amber-50 flex items-center justify-center mb-2">
+                    <AlertTriangle className="h-10 w-10 text-amber-500" />
                   </div>
+                  <h3 className="font-medium text-amber-500">You&apos;re the Organizer!</h3>
+                  <p className="text-sm text-muted-foreground">
+                    As the organizer of this campaign, you cannot claim your own NFT. This helps maintain the integrity of the distribution process.
+                  </p>
+                  <Button onClick={() => router.push('/dashboard')} className="w-full" size="lg">
+                    Return to Dashboard
+                  </Button>
                 </div>
 
-                {/* Status message */}
-                {getStatusMessage() && (
-                  <div className="flex items-center justify-center space-x-2 my-4">
-                    {[
-                      CLAIM_STATUSES.CONNECTING_WALLET,
-                      CLAIM_STATUSES.COLLECTING_DEVICE_INFO,
-                      CLAIM_STATUSES.GENERATING_PROOF,
-                      CLAIM_STATUSES.SUBMITTING,
-                      CLAIM_STATUSES.SUBMITTED,
-                    ].includes(status) && (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">{getStatusMessage()}</span>
-                      </>
-                    )}
-                    {[
-                      CLAIM_STATUSES.WALLET_CONNECTED,
-                      CLAIM_STATUSES.DEVICE_INFO_COLLECTED,
-                      CLAIM_STATUSES.PROOF_READY,
-                    ].includes(status) && (
-                      <>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-green-500">{getStatusMessage()}</span>
-                      </>
-                    )}
-                    {status === CLAIM_STATUSES.CLAIMED && (
-                      <>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-green-500">{getStatusMessage()}</span>
-                      </>
-                    )}
-                    {status === CLAIM_STATUSES.FAILED && (
-                      <>
-                        <XCircle className="h-4 w-4 text-red-500" />
-                        <span className="text-sm text-red-500">{getStatusMessage()}</span>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* Progress bar */}
-                {[CLAIM_STATUSES.COLLECTING_DEVICE_INFO, CLAIM_STATUSES.GENERATING_PROOF].includes(status) && (
-                  <div className="space-y-1 mt-2">
-                    <Progress value={progress} className="h-2" />
-                  </div>
-                )}
-
-                {/* STEP 0: IDLE / START */}
-                {status === CLAIM_STATUSES.IDLE && (
-                  <div className="text-center space-y-4 flex flex-col items-center">
-                    <p className="text-sm text-muted-foreground">
-                      To claim your NFT, we&apos;ll need to connect your wallet and verify your device to prevent
-                      duplicates.
-                    </p>
-                    <WalletButton />
-                  </div>
-                )}
-
-                {/* STEP 1: WALLET CONNECTED */}
-                {status === CLAIM_STATUSES.WALLET_CONNECTED && (
-                  <div className="space-y-4">
-                    <div className="p-3 bg-green-50 rounded-md">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        <p className="text-sm text-green-700 break-all">Wallet connected: {publicKey?.toBase58()}</p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground text-center">
-                      Next, we need to verify your device to prevent duplicate claims.
-                    </p>
-                    <Button onClick={collectDeviceInfo} className="w-full" size="lg">
-                      Verify Device
-                    </Button>
-                  </div>
-                )}
-
-                {/* STEP 2: DEVICE INFO COLLECTED */}
-                {status === CLAIM_STATUSES.DEVICE_INFO_COLLECTED && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-2">
-                      <div className="p-3 bg-green-50 rounded-md">
-                        <div className="flex items-start gap-2">
-                          <Fingerprint className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-sm font-medium text-green-700">Device verified</p>
-                            <p className="text-xs text-green-600 opacity-80">
-                              Fingerprint: {deviceInfo?.fingerprint.substring(0, 8)}...
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className={cn('p-3 rounded-md', deviceInfo?.geolocation ? 'bg-green-50' : 'bg-amber-50')}>
-                        <div className="flex items-start gap-2">
-                          <MapPin
-                            className={cn(
-                              'h-4 w-4 flex-shrink-0 mt-0.5',
-                              deviceInfo?.geolocation ? 'text-green-500' : 'text-amber-500',
-                            )}
-                          />
-                          <div>
-                            <p
-                              className={cn(
-                                'text-sm font-medium',
-                                deviceInfo?.geolocation ? 'text-green-700' : 'text-amber-700',
-                              )}
-                            >
-                              {deviceInfo?.geolocation ? 'Location verified' : 'Location not provided'}
-                            </p>
-                            {deviceInfo?.geolocation && (
-                              <p className="text-xs text-green-600 opacity-80">
-                                Coordinates: {deviceInfo.geolocation.latitude.toFixed(2)},{' '}
-                                {deviceInfo.geolocation.longitude.toFixed(2)}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-muted-foreground text-center">
-                      Device verified! Now generate a zero-knowledge proof to claim your NFT.
-                    </p>
-                    <Button onClick={generateZKProof} className="w-full" size="lg">
-                      Generate ZK Proof
-                    </Button>
-                  </div>
-                )}
-
-                {/* STEP 3: PROOF READY */}
-                {status === CLAIM_STATUSES.PROOF_READY && (
-                  <div className="space-y-4">
-                    <div className="p-3 bg-green-50 rounded-md">
-                      <div className="flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium text-green-700">Zero-Knowledge Proof Generated</p>
-                          <p className="text-xs text-green-600 opacity-80">Your proof is ready for submission</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-3 bg-slate-50 rounded-md">
-                      <p className="text-xs text-slate-600 font-mono break-all">
-                        <span className="font-medium">Proof Hash:</span> {zkProof?.proof?.pi_a[0].substring(0, 12)}...
-                      </p>
-                    </div>
-
-                    <p className="text-sm text-muted-foreground text-center">
-                      Your zero-knowledge proof is ready. This proves your eligibility without revealing sensitive
-                      information.
-                    </p>
-                    <Button onClick={submitClaim} className="w-full" size="lg">
-                      Submit & Claim NFT
-                    </Button>
-                  </div>
-                )}
-
-                {/* STEP 4: SUBMITTED */}
-                {(status === CLAIM_STATUSES.SUBMITTED || status === CLAIM_STATUSES.SUBMITTING) && (
-                  <div className="text-center space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      {status === CLAIM_STATUSES.SUBMITTING
-                        ? 'Submitting your claim...'
-                        : 'Your NFT is being minted on-chain. This may take a few moments.'}
-                    </p>
-
-                    <div className="grid grid-cols-1 gap-2 mt-4">
-                      {claimId && (
-                        <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
-                          <p className="text-xs text-muted-foreground font-medium">Claim ID:</p>
-                          <p className="text-xs font-mono break-all">{claimId}</p>
-                        </div>
-                      )}
-
-                      {publicKey && (
-                        <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
-                          <p className="text-xs text-muted-foreground font-medium">Wallet Address:</p>
-                          <p className="text-xs font-mono break-all">{publicKey?.toBase58()}</p>
-                        </div>
-                      )}
-
-                      {deviceInfo && (
-                        <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
-                          <p className="text-xs text-muted-foreground font-medium">Device ID:</p>
-                          <p className="text-xs font-mono break-all">{deviceInfo.fingerprint.substring(0, 16)}...</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 5: CLAIMED - SUCCESS */}
-                {status === CLAIM_STATUSES.CLAIMED && (
-                  <div className="text-center space-y-4">
-                    <motion.div
-                      initial={{ scale: 0, rotate: -10 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: 'spring', duration: 0.6 }}
-                    >
-                      <div className="mx-auto h-28 w-28 rounded-xl bg-green-50 flex items-center justify-center mb-2">
-                        <CheckCircle className="h-14 w-14 text-green-500" />
-                      </div>
-                    </motion.div>
-                    <div>
-                      <h3 className="font-medium text-lg">Success! 🎉</h3>
-                      <p className="text-sm text-muted-foreground">Your NFT has been minted successfully</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-2 mt-4">
-                      {publicKey && (
-                        <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
-                          <p className="text-xs text-muted-foreground font-medium">Wallet Address:</p>
-                          <p className="text-xs font-mono break-all">{publicKey?.toBase58()}</p>
-                        </div>
-                      )}
-
-                      {claimId && (
-                        <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
-                          <p className="text-xs text-muted-foreground font-medium">Transaction:</p>
-                          <p className="text-xs font-mono break-all">{claimId}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2 justify-center mt-2">
-                      <Button variant="outline" onClick={() => router.push('/my-claims')}>
-                        View My Claims
-                      </Button>
-                      <Button onClick={() => window.open(`https://explorer.solana.com/tx/${claimId}`, '_blank')}>
-                        View on Explorer
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 5: FAILED */}
-                {status === CLAIM_STATUSES.FAILED && (
-                  <div className="text-center space-y-4">
-                    <div className="mx-auto h-28 w-28 rounded-xl bg-red-50 flex items-center justify-center mb-2">
-                      <XCircle className="h-14 w-14 text-red-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg text-red-500">Minting Failed</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {error || 'There was an error processing your claim'}
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => {
-                        setStatus(CLAIM_STATUSES.IDLE)
-                        setError(null)
-                        setZkProof(null)
-                        setClaimId(null)
-                        setDeviceInfo(null)
-                        setProgress(0)
-                      }}
-                    >
-                      Start Over
-                    </Button>
-                  </div>
-                )}
-
-                {/* ERROR STATE - but can continue */}
-                {status === CLAIM_STATUSES.ERROR && (
-                  <div className="text-center space-y-4">
-                    <div className="mx-auto h-20 w-20 rounded-xl bg-amber-50 flex items-center justify-center mb-2">
-                      <AlertCircle className="h-10 w-10 text-amber-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-amber-500">Something went wrong</h3>
-                      <p className="text-sm text-muted-foreground">{error || 'There was an error with your request'}</p>
-                    </div>
-                    <Button
-                      onClick={() => {
-                        // Depending on what failed, we might want to go back to a different step
-                        if (!publicKey) {
-                          setStatus(CLAIM_STATUSES.IDLE)
-                        } else if (!deviceInfo) {
-                          setStatus(CLAIM_STATUSES.WALLET_CONNECTED)
-                        } else if (!zkProof) {
-                          setStatus(CLAIM_STATUSES.DEVICE_INFO_COLLECTED)
-                        } else {
-                          setStatus(CLAIM_STATUSES.PROOF_READY)
-                        }
-                        setError(null)
-                      }}
-                    >
-                      Try Again
-                    </Button>
-                  </div>
-                )}
-              </motion.div>
+              )}
             </AnimatePresence>
           </CardContent>
           <CardFooter className="pt-0 pb-4 px-4 flex flex-col">

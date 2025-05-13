@@ -20,16 +20,16 @@ model Organizer {
 }
 
 model Campaign {
-  id                String            @id @default(cuid())
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                String      @id @default(cuid())
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
   name              String
   description       String?
   organizerId       String
-  organizer         Organizer         @relation(fields: [organizerId], references: [id])
+  organizer         Organizer   @relation(fields: [organizerId], references: [id])
   tokenSymbol       String
   tokenUri          String
-  isActive          Boolean           @default(true)
+  isActive          Boolean     @default(true)
   qrCodeUrl         String?
   startsAt          DateTime?
   endsAt            DateTime?
@@ -37,40 +37,43 @@ model Campaign {
   metadataUri       String?
   claims            Claim[]
   qrSessions        QRSession[]
-  CompressedToken   CompressedToken[]
+  Token             Token[]
 }
 
 model Claim {
-  id                    String           @id @default(cuid())
-  createdAt             DateTime         @default(now())
+  id                    String      @id @default(cuid())
+  createdAt             DateTime    @default(now())
   organizerId           String?
-  organizer             Organizer?       @relation(fields: [organizerId], references: [id])
+  organizer             Organizer?  @relation(fields: [organizerId], references: [id])
   campaignId            String
-  campaign              Campaign         @relation(fields: [campaignId], references: [id])
+  campaign              Campaign    @relation(fields: [campaignId], references: [id])
   zkProofId             String?
-  zkProof               ZKProof?         @relation(fields: [zkProofId], references: [id])
-  status                ClaimStatus      @default(PENDING)
+  zkProof               ZKProof?    @relation(fields: [zkProofId], references: [id])
+  status                ClaimStatus @default(PENDING)
   claimedAt             DateTime?
   wallet                String?
   compressedMintAddress String?
   compressedTokenId     String?
   qrSessionId           String?
-  compressedToken       CompressedToken? @relation(fields: [compressedTokenId], references: [id])
-  qrSession             QRSession?       @relation(fields: [qrSessionId], references: [id])
+  qrSession             QRSession?  @relation(fields: [qrSessionId], references: [id])
   deviceHash            String?
   geoRegion             String?
+  Token                 Token?      @relation(fields: [tokenId], references: [id])
+  tokenId               String?
 }
 
-model CompressedToken {
-  id              String   @id @default(cuid())
-  mintAddress     String   @unique
-  metadataUri     String?
-  collection      String?
-  compressedProof Json?
-  available       Boolean  @default(true)
+model Token {
+  id              String     @id @default(cuid())
+  mintAddress     String     @unique
+  metadataUri     String
+  isCompressed    Boolean    @default(false)
+  available       Boolean    @default(true)
   campaignId      String
-  campaign        Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  Claim           Claim[]
+  campaign        Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  qrSessionId     String?
+  qrSession       QRSession? @relation(fields: [qrSessionId], references: [id])
+  compressedProof Json?
+  claim           Claim[]
 }
 
 model ZKProof {
@@ -90,8 +93,10 @@ model QRSession {
   expiry     QRSessionExpiry
   maxClaims  Int             @default(1)
   nonce      String          @unique
+  collection String?
   claims     Claim[]
   vault      Vault[]
+  Token      Token[]
 }
 
 enum QRSessionExpiry {

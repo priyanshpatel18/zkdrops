@@ -1,12 +1,11 @@
 import prisma from "@/lib/prismaConfig";
+import { pushToQueue } from "@/lib/pushToQueue";
 import { NextResponse } from "next/server";
 
 export async function PUT(request: Request) {
-  // vaultId, vaultPublicKey
   const body = await request.json()
 
   try {
-    // Fetch the existing vault
     const existingVault = await prisma.vault.findUnique({
       where: {
         id: body.vaultId,
@@ -25,6 +24,8 @@ export async function PUT(request: Request) {
         minted: true,
       }
     });
+
+    await pushToQueue({ vaultId: existingVault.id });
 
     return NextResponse.json({ message: 'Vault updated successfully' }, { status: 200 })
   } catch (error) {

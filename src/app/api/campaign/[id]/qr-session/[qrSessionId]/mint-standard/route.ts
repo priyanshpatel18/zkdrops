@@ -42,8 +42,9 @@ export async function POST(request: NextRequest) {
     const encrypted = encryptVaultKeyUint8(vault.secretKey);
 
     const NUMBER_OF_NFTS = qrSession.maxClaims;
+    const COLLECTION_NFT_COST = 0.002;
 
-    const totalCostInSOL = (NUMBER_OF_NFTS * BASE_COST_PER_NFT) + BUFFER_SOL;
+    const totalCostInSOL = (NUMBER_OF_NFTS * BASE_COST_PER_NFT) + BUFFER_SOL + COLLECTION_NFT_COST;
     const totalCostInLamports = Math.ceil(totalCostInSOL * 1e9);
 
     const newVault = await prisma.vault.create({
