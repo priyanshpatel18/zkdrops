@@ -42,6 +42,7 @@
     "@tanstack/react-query": "^5.74.7",
     "@wallet-ui/react": "1.1.0-canary-20250415034938",
     "@wallet-ui/tailwind": "1.1.0-canary-20250415034938",
+    "argon2": "^0.43.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "file-saver": "^2.0.5",

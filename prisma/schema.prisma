@@ -83,14 +83,15 @@ model ZKProof {
 }
 
 model QRSession {
-  id         String   @id @default(cuid())
+  id         String          @id @default(cuid())
   campaignId String
-  campaign   Campaign @relation(fields: [campaignId], references: [id])
-  createdAt  DateTime @default(now())
+  campaign   Campaign        @relation(fields: [campaignId], references: [id])
+  createdAt  DateTime        @default(now())
   expiry     QRSessionExpiry
-  maxClaims  Int      @default(1)
-  nonce      String   @unique
+  maxClaims  Int             @default(1)
+  nonce      String          @unique
   claims     Claim[]
+  vault      Vault[]
 }
 
 enum QRSessionExpiry {
@@ -105,4 +106,16 @@ enum ClaimStatus {
   VERIFIED
   CLAIMED
   FAILED
+}
+
+model Vault {
+  id          String    @id @default(cuid())
+  costInSol   Decimal
+  qrSessionId String
+  qrSession   QRSession @relation(fields: [qrSessionId], references: [id])
+  publicKey   String
+  privateKey  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  minted      Boolean   @default(false)
 }

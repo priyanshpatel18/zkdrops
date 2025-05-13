@@ -12,7 +12,15 @@ export async function GET(request: NextRequest) {
 
     const qrSession = await prisma.qRSession.findUnique({
       where: { id: sessionId },
-      include: { campaign: true, claims: true },
+      include: {
+        campaign: {
+          include: {
+            organizer: true
+          }
+        },
+        claims: true,
+        vault: true
+      },
     })
 
     if (!qrSession) {

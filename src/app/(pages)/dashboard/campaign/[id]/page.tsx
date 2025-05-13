@@ -283,9 +283,9 @@ export default function CampaignPage() {
           )}
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col">
           <Card className="overflow-hidden border-primary/10">
-            <div className="relative p-6">
+            <div className="relative p-6 py-0">
               <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
                 {campaign.tokenUri && (
                   <div className="flex-shrink-0 rounded-lg bg-white shadow-md p-1 border">
@@ -337,7 +337,7 @@ export default function CampaignPage() {
               </div>
             </div>
 
-            <CardContent className="p-6">
+            <CardContent>
               <div className="grid gap-6">
                 {campaign.description && (
                   <div>
@@ -348,7 +348,7 @@ export default function CampaignPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card className="bg-muted/30">
-                    <CardHeader className="pb-2">
+                    <CardHeader>
                       <CardTitle className="text-sm font-medium flex items-center gap-2">
                         <Shield className="w-4 h-4" />
                         Token Details
@@ -361,7 +361,7 @@ export default function CampaignPage() {
                   </Card>
 
                   <Card className="bg-muted/30">
-                    <CardHeader className="pb-2">
+                    <CardHeader>
                       <CardTitle className="text-sm font-medium flex items-center gap-2">
                         <CalendarIcon className="w-4 h-4" />
                         Status

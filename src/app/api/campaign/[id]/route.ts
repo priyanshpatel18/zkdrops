@@ -9,8 +9,6 @@ export async function GET(request: NextRequest) {
     if (!address) {
       return NextResponse.json({ error: 'Missing address' }, { status: 400 })
     }
-    console.log(address);
-    
 
     const campaigns = await prisma.campaign.findMany({
       where: {

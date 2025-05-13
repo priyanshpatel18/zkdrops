@@ -2,6 +2,7 @@
 
 import { BackgroundBeams } from '@/components/ui/background-beams'
 import { Button } from '@/components/ui/button'
+import { bricolage } from '@/fonts/bricolage'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -20,7 +21,7 @@ export default function LandingPage() {
         transition={{ duration: 0.7, ease: 'easeOut' }}
         className="max-w-3xl space-y-6 z-50"
       >
-        <h1 className="text-5xl font-bold tracking-tighter lg:text-7xl font-sans">
+        <h1 className={`text-5xl font-bold tracking-tighter lg:text-7xl ${bricolage.className}`}>
           zkdrops
         </h1>
         <p className="text-xl text-muted-foreground">
@@ -31,12 +32,12 @@ export default function LandingPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
-          <Button size="lg" onClick={() => router.push('/dashboard')}>
-            <span className='flex items-center gap-2'>
+          <Button size="lg" className='p-6 rounded-xl' onClick={() => router.push('/dashboard')}>
+            <span className='flex items-center gap-2 text-base'>
               Launch App <ArrowRight size={18} />
             </span>
           </Button>
-          <Button variant="outline" asChild size="lg">
+          <Button variant="outline" asChild size="lg" className='p-6 rounded-xl'>
             <a href="https://github.com/TechWizardLabs/zkdrops" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
               View Code {resolvedTheme === 'dark' ? (
                 <Image src="/github-light-theme.png" alt="GitHub" width={18} height={18} />

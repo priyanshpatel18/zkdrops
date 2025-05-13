@@ -7,6 +7,7 @@ import { Home, LayoutDashboard, Menu as MenuIcon, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { WalletButton } from '../solana/SolanaProvider'
+import { bricolage } from '@/fonts/bricolage'
 
 export default function Navbar() {
   const { connected } = useWallet()
@@ -27,7 +28,7 @@ export default function Navbar() {
       <div className="mx-auto flex items-center justify-between relative">
         <div className={`${isConnected ? 'flex-1' : 'w-8'} flex items-center`}>
           {isConnected && (
-            <Link href="/" className="text-xl font-bold text-primary flex items-center tracking-tighter">
+            <Link href="/" className={`text-xl font-bold text-primary flex items-center tracking-tighter ${bricolage.className}`}>
               zkdrops
             </Link>
           )}

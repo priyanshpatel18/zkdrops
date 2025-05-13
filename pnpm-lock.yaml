@@ -95,6 +95,9 @@ importers:
       '@wallet-ui/tailwind':
         specifier: 1.1.0-canary-20250415034938
         version: 1.1.0-canary-20250415034938(tailwindcss@4.1.5)
+      argon2:
+        specifier: ^0.43.0
+        version: 0.43.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1179,6 +1182,10 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
+
+  '@phc/format@1.0.0':
+    resolution: {integrity: sha512-m7X9U6BG2+J+R1lSOdCiITLLrxm+cWlNI3HUFA92oLO77ObGNzaKdh8pMLqdZcshtkKuV84olNNXDfMc4FezBQ==}
+    engines: {node: '>=10'}
 
   '@prisma/client@6.7.0':
     resolution: {integrity: sha512-+k61zZn1XHjbZul8q6TdQLpuI/cvyfil87zqK2zpreNIXyXtpUv3+H/oM69hcsFcZXaokHJIzPAt5Z8C8eK2QA==}
@@ -2812,6 +2819,10 @@ packages:
 
   arconnect@0.4.2:
     resolution: {integrity: sha512-Jkpd4QL3TVqnd3U683gzXmZUVqBUy17DdJDuL/3D9rkysLgX6ymJ2e+sR+xyZF5Rh42CBqDXWNMmCjBXeP7Gbw==}
+
+  argon2@0.43.0:
+    resolution: {integrity: sha512-u/HKLcbWShVDhkfwI4hWyiUf3qyX8QhTfaIv2cWE18uqhXCmR5hb6Ed7oqYi2KCQegeAnRhiFzbjzm7i5yl1GA==}
+    engines: {node: '>=16.17.0'}
 
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
@@ -4704,6 +4715,10 @@ packages:
 
   node-addon-api@5.1.0:
     resolution: {integrity: sha512-eh0GgfEkpnoWDq+VY8OyvYhFEzBk6jIYbRKdIlyTiAXIVJ8PyBaKb0rp7oDtoddbdoHWhq8wwr+XZ81F1rpNdA==}
+
+  node-addon-api@8.3.1:
+    resolution: {integrity: sha512-lytcDEdxKjGJPTLEfW4mYMigRezMlyJY8W4wxJK8zE533Jlb8L8dRuObJFWg2P+AuOIxoCgKF+2Oq4d4Zd0OUA==}
+    engines: {node: ^18 || ^20 || >= 21}
 
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
@@ -7144,6 +7159,8 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
+  '@phc/format@1.0.0': {}
+
   '@prisma/client@6.7.0(prisma@6.7.0(typescript@5.8.3))(typescript@5.8.3)':
     optionalDependencies:
       prisma: 6.7.0(typescript@5.8.3)
@@ -9189,6 +9206,12 @@ snapshots:
     dependencies:
       arweave: 1.15.7
     optional: true
+
+  argon2@0.43.0:
+    dependencies:
+      '@phc/format': 1.0.0
+      node-addon-api: 8.3.1
+      node-gyp-build: 4.8.4
 
   argparse@1.0.10:
     dependencies:
@@ -11474,6 +11497,8 @@ snapshots:
   node-addon-api@2.0.2: {}
 
   node-addon-api@5.1.0: {}
+
+  node-addon-api@8.3.1: {}
 
   node-domexception@1.0.0: {}
 
