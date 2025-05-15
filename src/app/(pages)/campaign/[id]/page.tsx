@@ -211,7 +211,7 @@ export default function CampaignPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-md">
-          <Button variant="ghost" onClick={() => router.push('/dashboard')} className="mb-4" size="sm">
+          <Button variant="ghost" onClick={() => router.push('/')} className="mb-4" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -224,7 +224,7 @@ export default function CampaignPage() {
               <p>{error}</p>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => router.push('/dashboard')}>Return to Dashboard</Button>
+              <Button onClick={() => router.push('/')}>Return to Dashboard</Button>
             </CardFooter>
           </Card>
         </div>
@@ -237,7 +237,7 @@ export default function CampaignPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] p-4">
         <div className="w-full max-w-md">
-          <Button variant="ghost" onClick={() => router.push('/dashboard')} className="mb-4" size="sm">
+          <Button variant="ghost" onClick={() => router.push('/')} className="mb-4" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -250,7 +250,7 @@ export default function CampaignPage() {
               <p>The campaign you&apos;re looking for doesn&apos;t exist or has been removed.</p>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => router.push('/dashboard')} className="cursor-pointer">
+              <Button onClick={() => router.push('/')} className="cursor-pointer">
                 Return to Dashboard
               </Button>
             </CardFooter>
@@ -270,7 +270,7 @@ export default function CampaignPage() {
     >
       <div className="w-full max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <Button variant="ghost" onClick={() => router.push('/dashboard')} size="sm" className="gap-2">
+          <Button variant="ghost" onClick={() => router.push('/')} size="sm" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             <span>Back</span>
           </Button>
@@ -449,7 +449,7 @@ export default function CampaignPage() {
                         <Button
                           onClick={() => {
                             toast.info('Feature coming soon')
-                            // router.push(`/dashboard/campaign/${id}/edit`)
+                            // router.push(`/campaign/${id}/edit`)
                           }}
                           className="gap-2"
                         >
@@ -460,7 +460,7 @@ export default function CampaignPage() {
                         <Button
                           variant="outline"
                           className="gap-2"
-                          onClick={() => router.push(`/dashboard/campaign/${id}/claims`)}
+                          onClick={() => router.push(`/campaign/${id}/claims`)}
                         >
                           <CheckCircle2 className="h-4 w-4" />
                           <span>View Claims</span>
@@ -469,7 +469,7 @@ export default function CampaignPage() {
                         {activeQrSession ? (
                           <Button
                             onClick={() => {
-                              router.push(`/dashboard/campaign/${id}/qr-sessions/${activeQrSession.id}`)
+                              router.push(`/campaign/${id}/qr-sessions/${activeQrSession.id}`)
                             }}
                             className="gap-2"
                           >
@@ -478,7 +478,7 @@ export default function CampaignPage() {
                           </Button>
                         ) : (
                           <Button
-                            onClick={() => router.push(`/dashboard/campaign/${id}/qr-sessions/new`)}
+                            onClick={() => router.push(`/campaign/${id}/qr-sessions/new`)}
                             className="gap-2"
                           >
                             <QrCode className="h-4 w-4" />
@@ -550,7 +550,7 @@ export default function CampaignPage() {
                 <div className="flex flex-col items-center gap-4">
                   <div className="bg-white p-6 rounded-lg">
                     <QRCodeSVG
-                      value={`${window.location.origin}/dashboard/campaign/${id}`}
+                      value={`${window.location.origin}/campaign/${id}`}
                       size={200}
                       level="H"
                       includeMargin={true}
@@ -568,7 +568,7 @@ export default function CampaignPage() {
                         className="gap-1"
                         onClick={() =>
                           copyToClipboard(
-                            `${window.location.origin}/dashboard/campaign/${id}`,
+                            `${window.location.origin}/campaign/${id}`,
                             'Campaign link copied to clipboard!',
                           )
                         }

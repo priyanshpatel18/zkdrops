@@ -799,7 +799,7 @@ export default function ClaimPage() {
                   <p className="text-sm text-muted-foreground">
                     As the organizer of this campaign, you cannot claim your own NFT. This helps maintain the integrity of the distribution process.
                   </p>
-                  <Button onClick={() => router.push('/dashboard')} className="w-full" size="lg">
+                  <Button onClick={() => router.push('/')} className="w-full" size="lg">
                     Return to Dashboard
                   </Button>
                 </div>

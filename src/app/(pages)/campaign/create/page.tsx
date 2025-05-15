@@ -105,7 +105,7 @@ export default function CreateCampaignPage() {
   useEffect(() => {
     setLoading(false)
     if (!connected) {
-      router.push('/dashboard')
+      router.push('/')
     }
   }, [connected, router])
 
@@ -126,7 +126,7 @@ export default function CreateCampaignPage() {
       transition={{ duration: 0.3 }}
     >
       <div className="w-full md:w-2/3 lg:w-3/5 mx-auto">
-        <Button variant="ghost" onClick={() => router.push('/dashboard')} className="mb-4 cursor-pointer" size="sm">
+        <Button variant="ghost" onClick={() => router.push('/')} className="mb-4 cursor-pointer" size="sm">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
         </Button>
@@ -372,7 +372,7 @@ export default function CreateCampaignPage() {
                 <Button
                   onClick={() => {
                     setShowSuccessModal(false)
-                    router.push('/dashboard')
+                    router.push('/')
                   }}
                   className="w-full cursor-pointer mt-2"
                 >

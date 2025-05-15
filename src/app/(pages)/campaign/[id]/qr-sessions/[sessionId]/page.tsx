@@ -189,7 +189,7 @@ export default function QRSessionPage() {
     if (isLoading) return;
 
     if (!connected) {
-      router.push("/dashboard")
+      router.push("/")
     }
   }, [connected, isLoading, qrSession, router])
 

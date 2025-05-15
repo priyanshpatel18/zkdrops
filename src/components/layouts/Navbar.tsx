@@ -1,13 +1,13 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { bricolage } from '@/fonts/bricolage'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { motion } from 'framer-motion'
-import { Home, LayoutDashboard, Menu as MenuIcon, Plus, X } from 'lucide-react'
+import { LayoutDashboard, Menu as MenuIcon, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { WalletButton } from '../solana/SolanaProvider'
-import { bricolage } from '@/fonts/bricolage'
 
 export default function Navbar() {
   const { connected } = useWallet()
@@ -34,7 +34,7 @@ export default function Navbar() {
           )}
         </div>
 
-        <div className={`${isConnected ? 'hidden' : 'flex-1 flex justify-center'}`}>
+        <div className={`${isConnected ? 'hidden' : 'flex-1 flex justify-center'} ${bricolage.className}`}>
           <Link href="/" className="text-xl font-bold text-primary flex items-center">
             zkdrops
           </Link>
@@ -43,13 +43,7 @@ export default function Navbar() {
         {isConnected && (
           <div className="hidden md:flex items-center gap-6">
             <Link
-              href="/dashboard"
-              className="text-sm text-foreground hover:text-primary transition flex items-center gap-1"
-            >
-              <Home className="h-4 w-4" /> Dashboard
-            </Link>
-            <Link
-              href="/dashboard/campaign/create"
+              href="/campaign/create"
               className="text-sm text-foreground hover:text-primary transition flex items-center gap-1"
             >
               <Plus className="h-4 w-4" /> Create
@@ -82,13 +76,6 @@ export default function Navbar() {
           transition={{ duration: 0.2 }}
         >
           <div className="flex flex-col space-y-1 py-2">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 px-2 py-3 text-foreground hover:bg-muted rounded-md"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Home className="h-4 w-4" /> Dashboard
-            </Link>
             <Link
               href="/campaign/create"
               className="flex items-center gap-2 px-2 py-3 text-foreground hover:bg-muted rounded-md"

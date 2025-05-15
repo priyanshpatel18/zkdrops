@@ -82,7 +82,7 @@ export default function NewQrSessionPage() {
       const data = await res.json()
 
       if (data.nonce) {
-        router.push(`/dashboard/campaign/${id}/qr-sessions/${data.id}`)
+        router.push(`/campaign/${id}/qr-sessions/${data.id}`)
       }
     } catch (error) {
       console.error(error)
@@ -98,12 +98,12 @@ export default function NewQrSessionPage() {
     if (!campaign || !publicKey || isLoading) return
 
     if (!connected) {
-      router.push('/dashboard')
+      router.push('/')
       return
     }
 
     if (publicKey.toBase58().toLowerCase() !== campaign.organizer?.wallet.toLowerCase()) {
-      router.push(`/dashboard/campaign/${id}`)
+      router.push(`/campaign/${id}`)
     }
   }, [campaign, publicKey, connected, id, isLoading, router])
 
