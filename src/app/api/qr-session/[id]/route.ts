@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
       include: {
         campaign: {
           include: {
-            organizer: true
-          }
+            organizer: true,
+          },
         },
         claims: true,
-        vault: true
+        vault: true,
       },
     })
 

@@ -19,7 +19,7 @@ export default function NewQrSessionPage() {
   const { publicKey, connected } = useWallet()
   const [campaign, setCampaign] = useState<Campaign | null>(null)
   const [maxClaims, setMaxClaims] = useState<string>('')
-  const [expiresIn, setExpiresIn] = useState('TWELVE_HOURS');
+  const [expiresIn, setExpiresIn] = useState('TWELVE_HOURS')
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function NewQrSessionPage() {
               <SelectTrigger>
                 <SelectValue placeholder="Choose expiration" />
               </SelectTrigger>
-              <SelectContent className='border-none'>
+              <SelectContent className="border-none">
                 <SelectItem value="TWELVE_HOURS">12 Hours</SelectItem>
                 <SelectItem value="ONE_DAY">1 Day</SelectItem>
                 <SelectItem value="TWO_DAY">2 Day</SelectItem>
@@ -146,6 +146,6 @@ export default function NewQrSessionPage() {
           Generate QR Code
         </Button>
       </Card>
-    </motion.div >
+    </motion.div>
   )
 }

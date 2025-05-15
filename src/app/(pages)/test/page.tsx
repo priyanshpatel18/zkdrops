@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { bricolage } from '@/fonts/bricolage'
 import { motion } from 'framer-motion'

@@ -106,7 +106,7 @@ export default function CreateCampaignPage() {
         claimLimitPerUser: '',
         metadataUri: '',
         qrCodeUrl: '',
-      });
+      })
       setShowSuccessModal(true)
     } catch (error) {
       if (error instanceof Error) {
@@ -219,9 +219,7 @@ export default function CreateCampaignPage() {
                             <span>Token Symbol</span>
                             <span className="text-destructive ml-1">*</span>
                           </span>
-                          <span className="text-sm text-muted-foreground">
-                            {formData.tokenSymbol.length}/32
-                          </span>
+                          <span className="text-sm text-muted-foreground">{formData.tokenSymbol.length}/32</span>
                         </Label>
                         <Input
                           id="tokenSymbol"
@@ -247,7 +245,7 @@ export default function CreateCampaignPage() {
                           className="cursor-pointer"
                           accept="image/png,image/jpeg,image/jpg"
                           onClick={(e) => {
-                            ; (e.target as HTMLInputElement).value = ''
+                            ;(e.target as HTMLInputElement).value = ''
                             setFormData((prev) => ({ ...prev, tokenUri: '', tokenMediaType: '' }))
                             setTokenImage(null)
                           }}

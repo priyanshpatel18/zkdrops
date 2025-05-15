@@ -36,8 +36,8 @@ export default function ClaimPage() {
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null)
-  const { connected, publicKey } = useWallet();
-  const [mintAddress, setMintAddress] = useState<string | null>(null);
+  const { connected, publicKey } = useWallet()
+  const [mintAddress, setMintAddress] = useState<string | null>(null)
 
   // 1. Fetch session info
   useEffect(() => {
@@ -505,21 +505,21 @@ export default function ClaimPage() {
                         CLAIM_STATUSES.SUBMITTING,
                         CLAIM_STATUSES.SUBMITTED,
                       ].includes(status) && (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">{getStatusMessage()}</span>
-                          </>
-                        )}
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">{getStatusMessage()}</span>
+                        </>
+                      )}
                       {[
                         CLAIM_STATUSES.WALLET_CONNECTED,
                         CLAIM_STATUSES.DEVICE_INFO_COLLECTED,
                         CLAIM_STATUSES.PROOF_READY,
                       ].includes(status) && (
-                          <>
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span className="text-sm text-green-500">{getStatusMessage()}</span>
-                          </>
-                        )}
+                        <>
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          <span className="text-sm text-green-500">{getStatusMessage()}</span>
+                        </>
+                      )}
                       {status === CLAIM_STATUSES.CLAIMED && (
                         <>
                           <CheckCircle className="h-4 w-4 text-green-500" />
@@ -725,7 +725,9 @@ export default function ClaimPage() {
                           View My Claims
                         </Button>
                         {mintAddress && (
-                          <Button onClick={() => window.open(`https://explorer.solana.com/account/${mintAddress}`, '_blank')}>
+                          <Button
+                            onClick={() => window.open(`https://explorer.solana.com/account/${mintAddress}`, '_blank')}
+                          >
                             View on Explorer
                           </Button>
                         )}
@@ -768,7 +770,9 @@ export default function ClaimPage() {
                       </div>
                       <div>
                         <h3 className="font-medium text-amber-500">Something went wrong</h3>
-                        <p className="text-sm text-muted-foreground">{error || 'There was an error with your request'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {error || 'There was an error with your request'}
+                        </p>
                       </div>
                       <Button
                         onClick={() => {
@@ -797,13 +801,13 @@ export default function ClaimPage() {
                   </div>
                   <h3 className="font-medium text-amber-500">You&apos;re the Organizer!</h3>
                   <p className="text-sm text-muted-foreground">
-                    As the organizer of this campaign, you cannot claim your own NFT. This helps maintain the integrity of the distribution process.
+                    As the organizer of this campaign, you cannot claim your own NFT. This helps maintain the integrity
+                    of the distribution process.
                   </p>
                   <Button onClick={() => router.push('/')} className="w-full" size="lg">
                     Return to Dashboard
                   </Button>
                 </div>
-
               )}
             </AnimatePresence>
           </CardContent>

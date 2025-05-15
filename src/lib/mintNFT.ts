@@ -1,26 +1,24 @@
 /* eslint-disable */
 
-import { Campaign } from '@/types/types';
-import { createRpc, Rpc, selectStateTreeInfo } from '@lightprotocol/stateless.js';
-import { Metaplex } from '@metaplex-foundation/js';
-import {
-  MPL_BUBBLEGUM_PROGRAM_ID,
-} from '@metaplex-foundation/mpl-bubblegum';
+import { Campaign } from '@/types/types'
+import { createRpc, Rpc, selectStateTreeInfo } from '@lightprotocol/stateless.js'
+import { Metaplex } from '@metaplex-foundation/js'
+import { MPL_BUBBLEGUM_PROGRAM_ID } from '@metaplex-foundation/mpl-bubblegum'
 import {
   Connection,
   Keypair,
   PublicKey,
   Transaction,
   TransactionInstruction,
-  VersionedTransaction
-} from '@solana/web3.js';
+  VersionedTransaction,
+} from '@solana/web3.js'
 const {
   SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
   SPL_NOOP_PROGRAM_ID,
-  createAllocTreeIx
-} = require('@solana/spl-account-compression');
+  createAllocTreeIx,
+} = require('@solana/spl-account-compression')
 
-const RPC_ENDPOINT = `https://devnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIOUS_API_KEY}`;
+const RPC_ENDPOINT = `https://devnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIOUS_API_KEY}`
 
 interface Metadata {
   name: string
@@ -80,13 +78,13 @@ export const handleMintCPOPs = async (
       treeKeypair.publicKey,
       treeAuthority,
       collectionNFT.address,
-      nftsToMint
+      nftsToMint,
     )
 
     return {
       collectionAddress: collectionNFT.address.toBase58(),
       treeAddress: treeKeypair.publicKey.toBase58(),
-      mintResults
+      mintResults,
     }
   } catch (error) {
     console.error('Error in handleMintCPOPs:', error)
@@ -117,7 +115,7 @@ const CANOPY_DEPTH = 10 // Canopy depth for faster verification
 export async function createMerkleTree(
   connection: Rpc,
   payer: PublicKey,
-  signTransaction: <T extends Transaction | VersionedTransaction>(transaction: T) => Promise<T>
+  signTransaction: <T extends Transaction | VersionedTransaction>(transaction: T) => Promise<T>,
 ) {
   const BUBBLEGUM_PROGRAM_ID = new PublicKey(MPL_BUBBLEGUM_PROGRAM_ID)
 
@@ -125,10 +123,7 @@ export async function createMerkleTree(
   const treeKeypair = Keypair.generate()
 
   // Calculate the tree authority PDA
-  const [treeAuthority] = PublicKey.findProgramAddressSync(
-    [treeKeypair.publicKey.toBuffer()],
-    BUBBLEGUM_PROGRAM_ID
-  )
+  const [treeAuthority] = PublicKey.findProgramAddressSync([treeKeypair.publicKey.toBuffer()], BUBBLEGUM_PROGRAM_ID)
 
   // Calculate space needed and minimum balance for rent exemption
   const space = 8 + 32 + 32 + 4
@@ -138,20 +133,11 @@ export async function createMerkleTree(
   const transaction = new Transaction()
 
   // Add system create account instruction
-  const treeInfos = await connection.getStateTreeInfos();
-  const treeInfo = selectStateTreeInfo(treeInfos);
-
+  const treeInfos = await connection.getStateTreeInfos()
+  const treeInfo = selectStateTreeInfo(treeInfos)
 
   // Add allocate tree instruction
-  transaction.add(
-    createAllocTreeIx(
-      treeKeypair.publicKey,
-      payer,
-      MAX_DEPTH,
-      MAX_BUFFER_SIZE,
-      payer
-    )
-  )
+  transaction.add(createAllocTreeIx(treeKeypair.publicKey, payer, MAX_DEPTH, MAX_BUFFER_SIZE, payer))
 
   // Sign the transaction with the tree keypair and the payer
   transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
@@ -181,7 +167,7 @@ function prepareNFTMetadata(campaign: Campaign, maxClaims: number, collectionAdd
       sellerFeeBasisPoints: 0,
       creators: [
         {
-          address: campaign.organizer?.wallet || "",
+          address: campaign.organizer?.wallet || '',
           verified: true,
           share: 100,
         },
@@ -194,7 +180,7 @@ function prepareNFTMetadata(campaign: Campaign, maxClaims: number, collectionAdd
       properties: {
         files: [
           {
-            type: "image/png",
+            type: 'image/png',
             uri: campaign.tokenUri,
           },
         ],
@@ -212,7 +198,7 @@ async function mintCompressedNFTs(
   merkleTree: PublicKey,
   treeAuthority: PublicKey,
   collectionMint: PublicKey,
-  metadataList: Metadata[]
+  metadataList: Metadata[],
 ): Promise<string[]> {
   const txSignatures: string[] = []
 
@@ -223,8 +209,8 @@ async function mintCompressedNFTs(
       new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s').toBuffer(),
       collectionMint.toBuffer(),
     ],
-    new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
-  );
+    new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'),
+  )
 
   const [collectionMasterEdition] = PublicKey.findProgramAddressSync(
     [
@@ -233,15 +219,14 @@ async function mintCompressedNFTs(
       collectionMint.toBuffer(),
       Buffer.from('edition'),
     ],
-    new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
-  );
+    new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'),
+  )
 
-  const bubblegumProgramId = new PublicKey(MPL_BUBBLEGUM_PROGRAM_ID);
-  const compressionProgramId = new PublicKey(SPL_ACCOUNT_COMPRESSION_PROGRAM_ID);
+  const bubblegumProgramId = new PublicKey(MPL_BUBBLEGUM_PROGRAM_ID)
+  const compressionProgramId = new PublicKey(SPL_ACCOUNT_COMPRESSION_PROGRAM_ID)
   // const tokenMetadataProgramId = new PublicKey();
-  const systemProgramId = new PublicKey('11111111111111111111111111111111');
-  const rentSysvarId = new PublicKey('SysvarRent111111111111111111111111111111111');
-
+  const systemProgramId = new PublicKey('11111111111111111111111111111111')
+  const rentSysvarId = new PublicKey('SysvarRent111111111111111111111111111111111')
 
   // Mint each NFT one at a time (you could batch these for efficiency)
   for (const metadata of metadataList) {
@@ -277,12 +262,10 @@ async function mintCompressedNFTs(
               verified: creator.verified,
               share: creator.share,
             })),
-          })
+          }),
         ),
       ]),
-    });
-
-
+    })
 
     const transaction = new Transaction()
 

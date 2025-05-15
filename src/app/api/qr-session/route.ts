@@ -11,14 +11,15 @@ export async function GET(request: NextRequest) {
     }
 
     const session = await prisma.qRSession.findFirst({
-      where: { nonce }, include: {
+      where: { nonce },
+      include: {
         campaign: {
           include: {
-            organizer: true
-          }
+            organizer: true,
+          },
         },
-        claims: true
-      }
+        claims: true,
+      },
     })
 
     if (!session) {

@@ -144,7 +144,8 @@ export default function DashboardPage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Let creators mint experience tokens, attendees claim them via QR codes, and keep everything scalable, verifiable, and privacy-preserving using zero-knowledge proofs.
+              Let creators mint experience tokens, attendees claim them via QR codes, and keep everything scalable,
+              verifiable, and privacy-preserving using zero-knowledge proofs.
             </motion.p>
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -240,10 +241,7 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="mt-2">
-                          <Badge
-                            variant={variant as 'default' | 'secondary' | 'outline'}
-                            className="p-2 px-3 text-sm"
-                          >
+                          <Badge variant={variant as 'default' | 'secondary' | 'outline'} className="p-2 px-3 text-sm">
                             {status}
                           </Badge>
                         </div>
@@ -257,11 +255,10 @@ export default function DashboardPage() {
                           src={campaign.tokenUri}
                           alt={campaign.name}
                           fill
-                          className={`rounded-md object-cover transition-opacity duration-500 ${loadedImages[campaign.id] ? 'opacity-100' : 'opacity-0'
-                            }`}
-                          onLoad={() =>
-                            setLoadedImages((prev) => ({ ...prev, [campaign.id]: true }))
-                          }
+                          className={`rounded-md object-cover transition-opacity duration-500 ${
+                            loadedImages[campaign.id] ? 'opacity-100' : 'opacity-0'
+                          }`}
+                          onLoad={() => setLoadedImages((prev) => ({ ...prev, [campaign.id]: true }))}
                         />
                       </div>
                     </CardContent>

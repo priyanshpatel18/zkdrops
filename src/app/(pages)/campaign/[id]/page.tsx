@@ -20,7 +20,7 @@ import {
   Loader2,
   QrCode,
   Share2,
-  Shield
+  Shield,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -43,31 +43,30 @@ export default function CampaignPage() {
   })
 
   const activeQrSession = useMemo(() => {
-    const now = new Date();
-    if (!campaign?.qrSessions) return null;
+    const now = new Date()
+    if (!campaign?.qrSessions) return null
 
     const getExpiresAt = (createdAt: Date, expiry: QRSessionExpiry): Date | null => {
-      const created = createdAt;
+      const created = createdAt
       switch (expiry) {
         case QRSessionExpiry.TWELVE_HOURS:
-          return new Date(created.getTime() + 12 * 60 * 60 * 1000);
+          return new Date(created.getTime() + 12 * 60 * 60 * 1000)
         case QRSessionExpiry.ONE_DAY:
-          return new Date(created.getTime() + 24 * 60 * 60 * 1000);
+          return new Date(created.getTime() + 24 * 60 * 60 * 1000)
         case QRSessionExpiry.TWO_DAY:
-          return new Date(created.getTime() + 48 * 60 * 60 * 1000);
+          return new Date(created.getTime() + 48 * 60 * 60 * 1000)
         case QRSessionExpiry.NEVER:
-          return null;
+          return null
         default:
-          return null;
+          return null
       }
-    };
+    }
 
     return campaign.qrSessions.find((session) => {
-      const expiresAt = getExpiresAt(new Date(session.createdAt), session.expiry);
-      return !expiresAt || expiresAt >= now;
-    });
-  }, [campaign]);
-
+      const expiresAt = getExpiresAt(new Date(session.createdAt), session.expiry)
+      return !expiresAt || expiresAt >= now
+    })
+  }, [campaign])
 
   useEffect(() => {
     if (!campaign || !campaign.endsAt) return
@@ -443,10 +442,7 @@ export default function CampaignPage() {
                             <span>View QR Session</span>
                           </Button>
                         ) : (
-                          <Button
-                            onClick={() => router.push(`/campaign/${id}/qr-sessions/new`)}
-                            className="gap-2"
-                          >
+                          <Button onClick={() => router.push(`/campaign/${id}/qr-sessions/new`)} className="gap-2">
                             <QrCode className="h-4 w-4" />
                             <span>Create QR Session</span>
                           </Button>

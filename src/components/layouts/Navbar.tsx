@@ -28,7 +28,10 @@ export default function Navbar() {
       <div className="mx-auto flex items-center justify-between relative">
         <div className={`${isConnected ? 'flex-1' : 'w-8'} flex items-center`}>
           {isConnected && (
-            <Link href="/" className={`text-xl font-bold text-primary flex items-center tracking-tighter ${bricolage.className}`}>
+            <Link
+              href="/"
+              className={`text-xl font-bold text-primary flex items-center tracking-tighter ${bricolage.className}`}
+            >
               zkdrops
             </Link>
           )}

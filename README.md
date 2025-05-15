@@ -3,7 +3,7 @@
 ## 🧩 Overview
 
 **zkdrops** is a zk-compressed Proof-of-Participation protocol built on **Solana**.  
-It allows organizers to mint experience tokens (cPOPs), share them via QR codes, and enable attendees to claim them using zero-knowledge proofs — all in a scalable, private, and verifiable manner.
+It allows organizers to mint experience tokens (POPs), share them via QR codes, and enable attendees to claim them using zero-knowledge proofs — all in a scalable, private, and verifiable manner.
 
 ---
 
@@ -22,8 +22,8 @@ It allows organizers to mint experience tokens (cPOPs), share them via QR codes,
 ## 👤 User Roles
 
 | Role      | Capabilities                                         |
-|-----------|------------------------------------------------------|
-| Organizer | Create campaigns, generate QR sessions, mint cPOPs  |
+| --------- | ---------------------------------------------------- |
+| Organizer | Create campaigns, generate QR sessions, mint cPOPs   |
 | Attendee  | Scan QR codes, generate ZK proof, claim cPOPs (NFTs) |
 
 ---
@@ -32,9 +32,9 @@ It allows organizers to mint experience tokens (cPOPs), share them via QR codes,
 
 1. **Organizer** creates a campaign with metadata.
 2. **Organizer** generates a QR session linked to the campaign.
-3. **Organizer** mints **cPOPs** using Light Protocol and signs with their wallet.
+3. **Organizer** transfer **required SOL** to a vault.
 4. **Attendees** scan the QR code → generate ZK proof → claim the cPOP.
-5. **Compressed tokens** are recorded in the DB and linked to the campaign.
+5. **Tokens** are minted by a worker, and the claim is saved to the database.
 
 ---
 
@@ -42,7 +42,6 @@ It allows organizers to mint experience tokens (cPOPs), share them via QR codes,
 
 ### 🎯 Campaign Creation
 
-- `POST /api/campaign`
 - Stores: name, description, token URI, metadata URI, limits, etc.
 
 ### 🧾 QR Session
@@ -51,13 +50,12 @@ It allows organizers to mint experience tokens (cPOPs), share them via QR codes,
 - Encodes campaign ID + session nonce
 - Modal UI for sharing, copying, or downloading the QR code
 
-### 🪙 cPOP Minting (Organizer)
+### 🪙 POP Minting (Organizer)
 
 - Organizer signs a compressed token mint transaction
 - Minted via [Light Protocol](https://docs.lightprotocol.io)
-- Mint metadata saved to `/api/compressed-token`
 
-### 🔒 ZK Proof + Claim (Attendee) *(WIP)*
+### 🔒 ZK Proof + Claim (Attendee) _(WIP)_
 
 - Attendee scans QR code
 - Generates zero-knowledge proof of presence
@@ -76,7 +74,8 @@ It allows organizers to mint experience tokens (cPOPs), share them via QR codes,
 
 ## 🧠 Design Decisions
 
-- ❌ No backend minting — organizer must sign mint tx client-side
+- ✅ Vault minting — organizer must send SOL to a vault
+- ✅ Remaining SOL is returned to the organizer saving gas fees
 - ✅ Metadata is stored once in the `Campaign` model (no duplication)
 - ✅ Prisma models are relational and support tracking claims, sessions, and tokens
 

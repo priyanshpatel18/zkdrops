@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -6,14 +6,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { bn } from '@lightprotocol/stateless.js'
+import { bn, confirmTransaction } from '@lightprotocol/stateless.js'
 import { Campaign, Claim, QRSession, Vault } from '@prisma/client'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { Connection, PublicKey, SystemProgram, TransactionMessage, VersionedTransaction } from '@solana/web3.js'
+import { clusterApiUrl, Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Download, Loader2, Share2 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
-import QRCode from "qrcode"
+import QRCode from 'qrcode'
 import { QRCodeSVG } from 'qrcode.react'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -30,23 +30,23 @@ interface QRSessionState extends QRSession {
   vault: Vault[]
 }
 
-const RPC_ENDPOINT = `https://devnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIUS_API_KEY}`;
+// const RPC_ENDPOINT = `https://devnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIUS_API_KEY}`;
 
 export default function QRSessionPage() {
   const router = useRouter()
   const [maxClaims, setMaxClaims] = useState<string>('')
   const [qrSessionUrl, setQrSessionUrl] = useState('')
-  const { connected, publicKey, signTransaction } = useWallet();
+  const { connected, publicKey, sendTransaction } = useWallet()
   const [isMinting, setIsMinting] = useState(false)
   const { sessionId } = useParams()
   const [qrSession, setQrSession] = useState<QRSessionState | null>(null)
-  const [isOwner, setIsOwner] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [mintType, setMintType] = useState<"compressed" | "standard">('standard');
+  const [isOwner, setIsOwner] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [mintType, setMintType] = useState<'compressed' | 'standard'>('standard')
 
   const fetchQRSession = useCallback(async () => {
     if (!sessionId) {
-      return;
+      return
     }
 
     try {
@@ -61,7 +61,6 @@ export default function QRSessionPage() {
         setQrSessionUrl(`${window.location.origin}/claim/${fetchedQrSession.nonce}`)
         setMaxClaims(fetchedQrSession.maxClaims.toString())
       }
-
     } catch (error) {
       console.error(error)
     } finally {
@@ -81,7 +80,7 @@ export default function QRSessionPage() {
     }
   }, [connected, publicKey, qrSession])
 
-  const handleMint = async (mintType: "compressed" | "standard") => {
+  const handleMint = async (mintType: 'compressed' | 'standard') => {
     if (!sessionId || !maxClaims || !qrSession?.campaign) return
 
     if (!publicKey) {
@@ -91,8 +90,8 @@ export default function QRSessionPage() {
 
     setIsMinting(true)
     try {
-      let response;
-      if (mintType === "standard") {
+      let response
+      if (mintType === 'standard') {
         response = await fetch(`/api/campaign/${qrSession.campaign.id}/qr-session/${sessionId}/mint-standard`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -105,16 +104,16 @@ export default function QRSessionPage() {
           body: JSON.stringify({ publicKey: publicKey.toBase58() }),
         })
       }
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
         toast.error(data.error)
-        return;
+        return
       }
 
-      const { amount, vaultPublicKey } = data;
+      const { amount, vaultPublicKey } = data
 
-      await promptTransfer(amount, vaultPublicKey);
+      await promptTransfer(amount, vaultPublicKey)
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message)
@@ -125,81 +124,89 @@ export default function QRSessionPage() {
   }
 
   const promptTransfer = async (lamports: number, vaultPublicKey: string) => {
-    if (!publicKey || !signTransaction || !qrSession) {
+    if (!publicKey || !sendTransaction || !qrSession) {
       toast.error('Please connect your wallet')
-      return;
+      return
+    }
+    if (!vaultPublicKey || !PublicKey.isOnCurve(vaultPublicKey)) {
+      toast.error('Invalid vault address.')
+      return
     }
 
-    const connection = new Connection(RPC_ENDPOINT);
+    const connection = new Connection(clusterApiUrl('devnet'), {
+      commitment: 'confirmed',
+    })
     try {
-      const vault = new PublicKey(vaultPublicKey);
+      const balance = await connection.getBalance(publicKey)
 
-      const ix = SystemProgram.transfer({
-        fromPubkey: publicKey,
-        toPubkey: vault,
-        lamports,
-      });
-
-      const { blockhash } = await connection.getLatestBlockhash();
-
-      const messageV0 = new TransactionMessage({
-        payerKey: publicKey,
-        recentBlockhash: blockhash,
-        instructions: [ix],
-      }).compileToV0Message();
-
-      const versionedTx = new VersionedTransaction(messageV0);
-
-      const signedTx = await signTransaction(versionedTx);
-
-      // Simulate (optional, can be removed in production)
-      const simulationResult = await connection.simulateTransaction(signedTx);
-      console.log('simulationResult', simulationResult);
-
-      if (simulationResult.value.err) {
-        toast.error('Transaction simulation failed');
-        return;
+      if (balance < Number(lamports) + 5000) {
+        toast.error('Insufficient funds to complete the transaction.')
+        return
       }
 
-      // Send and confirm
-      const txSignature = await connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: false });
-      const result = await connection.confirmTransaction(txSignature, 'confirmed');
+      const vault = new PublicKey(vaultPublicKey)
 
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: vault,
+          lamports,
+        }),
+      )
+      const blockhash = await connection.getLatestBlockhash()
+      transaction.feePayer = publicKey
+      transaction.lastValidBlockHeight = blockhash.lastValidBlockHeight
+      transaction.recentBlockhash = blockhash.blockhash
+
+      const signature = await sendTransaction(transaction, connection, {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed',
+      })
+
+      const result = await confirmTransaction(connection, signature, 'confirmed')
       if (result.value.err) {
         toast.error('Transaction failed')
       } else {
-        const connection = new Connection(RPC_ENDPOINT);
-        const balance = await connection.getBalance(new PublicKey(qrSession?.vault[0].publicKey));
+        const connection = new Connection(clusterApiUrl('devnet'))
+        const balance = await connection.getBalance(new PublicKey(qrSession?.vault[0].publicKey))
         if (balance <= Number(qrSession?.vault[0].costInSol) * 10 ** 9) {
           toast.error('Transaction failed')
-          return;
+          return
         }
-        await fetch("/api/vault", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
+        await fetch('/api/vault', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             vaultId: qrSession?.vault[0].id,
             vaultPublicKey: qrSession?.vault[0].publicKey,
           }),
-        });
+        })
+        await fetch(`/api/campaign/${qrSession?.campaign.id}/qr-session`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            qrSessionId: sessionId,
+            campaignId: qrSession?.campaign.id,
+          }),
+        })
 
-        await fetchQRSession();
-        toast.success('NFT Minting Started');
+        await fetchQRSession()
+        toast.success('NFT Minting Started')
       }
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message)
       }
     } finally {
-      setIsMinting(false);
+      setIsMinting(false)
     }
   }
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading) return
 
     if (!connected) {
-      router.push("/")
+      router.push('/')
     }
   }, [connected, isLoading, qrSession, router])
 
@@ -225,39 +232,39 @@ export default function QRSessionPage() {
           title: `${qrSession?.campaign?.name ?? 'Campaign'} - Claim QR Code`,
           text: 'Scan this QR code to claim your collectible!',
           url: qrSessionUrl,
-        });
-        toast.success('QR code shared successfully!');
+        })
+        toast.success('QR code shared successfully!')
       } catch (error) {
         if (error !== 'AbortError') {
-          toast.error('Failed to share QR code');
+          toast.error('Failed to share QR code')
         }
       }
     } else {
-      toast.error('Sharing is not supported on this device');
+      toast.error('Sharing is not supported on this device')
     }
-  };
+  }
 
   const downloadQR = async () => {
     try {
       if (!qrSessionUrl || !qrSession?.campaign) {
-        toast.error('QR code data missing');
-        return;
+        toast.error('QR code data missing')
+        return
       }
 
       const dataUrl = await QRCode.toDataURL(qrSessionUrl, {
         width: 400,
         margin: 2,
-      });
+      })
 
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = `${qrSession.campaign.name || 'qr-code'}-${Date.now()}.png`;
-      link.click();
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `${qrSession.campaign.name || 'qr-code'}-${Date.now()}.png`
+      link.click()
 
-      toast.success('QR code downloaded');
+      toast.success('QR code downloaded')
     } catch (error) {
-      console.error('QR download failed:', error);
-      toast.error('Failed to generate QR code');
+      console.error('QR download failed:', error)
+      toast.error('Failed to generate QR code')
     }
   }
 
@@ -283,12 +290,12 @@ export default function QRSessionPage() {
 
       {qrSession?.campaign ? (
         <>
-          <span className='text-sm text-muted-foreground'>Campaign</span>
+          <span className="text-sm text-muted-foreground">Campaign</span>
           <h1 className="text-xl font-bold mb-1">{qrSession?.campaign?.name}</h1>
         </>
       ) : (
         <>
-          <span className='text-sm text-muted-foreground'>Campaign</span>
+          <span className="text-sm text-muted-foreground">Campaign</span>
           <Skeleton className="h-6 w-1/2 mb-4" />
         </>
       )}
@@ -329,7 +336,7 @@ export default function QRSessionPage() {
                 <Label>Mint Proof of Participation (POP)</Label>
 
                 <div className="flex flex-col gap-2">
-                  <Label className="text-sm">{!qrSession?.vault[0]?.minted && "Select"}{" "}NFT Type</Label>
+                  <Label className="text-sm">{!qrSession?.vault[0]?.minted && 'Select'} NFT Type</Label>
                   <div className="flex gap-4">
                     <Label className="flex items-center space-x-2">
                       <Input
@@ -355,14 +362,8 @@ export default function QRSessionPage() {
                 </div>
 
                 {qrSession?.vault[0] === undefined && (
-                  <Button
-                    onClick={() => handleMint(mintType)}
-                    className="w-full"
-                    disabled={isMinting}
-                  >
-                    {isMinting
-                      ? 'Minting...'
-                      : `Mint ${mintType === 'compressed' ? 'cPOPs' : 'Standard POPs'}`}
+                  <Button onClick={() => handleMint(mintType)} className="w-full" disabled={isMinting}>
+                    {isMinting ? 'Minting...' : `Mint ${mintType === 'compressed' ? 'cPOPs' : 'Standard POPs'}`}
                   </Button>
                 )}
 
@@ -370,7 +371,7 @@ export default function QRSessionPage() {
                   <Button
                     onClick={() => {
                       setIsMinting(true)
-                      const totalCostInLamports = Math.ceil(Number(qrSession.vault[0].costInSol) * 1e9);
+                      const totalCostInLamports = Math.ceil(Number(qrSession.vault[0].costInSol) * 1e9)
                       promptTransfer(bn(totalCostInLamports), qrSession.vault[0].publicKey)
                     }}
                     className="w-full"
@@ -390,6 +391,6 @@ export default function QRSessionPage() {
           )}
         </Card>
       </motion.div>
-    </motion.div >
+    </motion.div>
   )
 }

@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    await mintNFT({ claimId: claim.id });
+    await mintNFT({ claimId: claim.id })
 
     return NextResponse.json({ claim }, { status: 200 })
   } catch (e) {
