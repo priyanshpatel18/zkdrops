@@ -59,7 +59,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 
-
     return NextResponse.json({ amount: totalCostInLamports, vaultPublicKey: vault.publicKey.toBase58() }, { status: 200 });
   } catch (e) {
     console.error(e)

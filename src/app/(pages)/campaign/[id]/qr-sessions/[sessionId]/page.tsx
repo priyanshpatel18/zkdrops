@@ -9,11 +9,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { bn } from '@lightprotocol/stateless.js'
 import { Campaign, Claim, QRSession, Vault } from '@prisma/client'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
-import { saveAs } from 'file-saver'
+import { Connection, PublicKey, SystemProgram, TransactionMessage, VersionedTransaction } from '@solana/web3.js'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Check, Copy, Download, Loader2, Share2 } from 'lucide-react'
+import { ArrowLeft, Download, Loader2, Share2 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
+import QRCode from "qrcode"
 import { QRCodeSVG } from 'qrcode.react'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -37,7 +37,6 @@ export default function QRSessionPage() {
   const [maxClaims, setMaxClaims] = useState<string>('')
   const [qrSessionUrl, setQrSessionUrl] = useState('')
   const { connected, publicKey, signTransaction } = useWallet();
-  const [isCopied, setIsCopied] = useState(false)
   const [isMinting, setIsMinting] = useState(false)
   const { sessionId } = useParams()
   const [qrSession, setQrSession] = useState<QRSessionState | null>(null)
@@ -135,26 +134,37 @@ export default function QRSessionPage() {
     try {
       const vault = new PublicKey(vaultPublicKey);
 
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: vault,
-          lamports,
-        })
-      );
-      const { blockhash } = await connection.getLatestBlockhash();
-      transaction.feePayer = publicKey;
-      transaction.recentBlockhash = blockhash;
+      const ix = SystemProgram.transfer({
+        fromPubkey: publicKey,
+        toPubkey: vault,
+        lamports,
+      });
 
-      const simulationResult = await connection.simulateTransaction(transaction);
+      const { blockhash } = await connection.getLatestBlockhash();
+
+      const messageV0 = new TransactionMessage({
+        payerKey: publicKey,
+        recentBlockhash: blockhash,
+        instructions: [ix],
+      }).compileToV0Message();
+
+      const versionedTx = new VersionedTransaction(messageV0);
+
+      const signedTx = await signTransaction(versionedTx);
+
+      // Simulate (optional, can be removed in production)
+      const simulationResult = await connection.simulateTransaction(signedTx);
+      console.log('simulationResult', simulationResult);
+
       if (simulationResult.value.err) {
         toast.error('Transaction simulation failed');
         return;
       }
 
-      const signature = await signTransaction(transaction);
-      const txSignature = await connection.sendRawTransaction(signature.serialize());
+      // Send and confirm
+      const txSignature = await connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: false });
       const result = await connection.confirmTransaction(txSignature, 'confirmed');
+
       if (result.value.err) {
         toast.error('Transaction failed')
       } else {
@@ -173,7 +183,7 @@ export default function QRSessionPage() {
           }),
         });
 
-        await fetchQRSession()
+        await fetchQRSession();
         toast.success('NFT Minting Started');
       }
     } catch (error) {
@@ -208,55 +218,46 @@ export default function QRSessionPage() {
     }
   }
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(qrSessionUrl)
-    setIsCopied(true)
-    toast.success('Copied to clipboard')
-    setTimeout(() => setIsCopied(false), 2000)
-  }
-
   const shareQRCode = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${qrSession?.campaign?.name} - Claim QR Code`,
-          text: 'Scan this QR code to claim your collectible',
+          title: `${qrSession?.campaign?.name ?? 'Campaign'} - Claim QR Code`,
+          text: 'Scan this QR code to claim your collectible!',
           url: qrSessionUrl,
-        })
-        toast.success('Shared successfully')
+        });
+        toast.success('QR code shared successfully!');
       } catch (error) {
-        console.error('Error sharing:', error)
+        if (error !== 'AbortError') {
+          toast.error('Failed to share QR code');
+        }
       }
     } else {
-      copyToClipboard()
+      toast.error('Sharing is not supported on this device');
     }
-  }
+  };
 
   const downloadQR = async () => {
     try {
-      if (!qrSession || !qrSession.campaign) {
+      if (!qrSessionUrl || !qrSession?.campaign) {
+        toast.error('QR code data missing');
         return;
       }
 
-      if (!qrSession.campaign.qrCodeUrl) {
-        throw new Error('QR Code URL is not available');
-      }
-      const response = await fetch(qrSession.campaign.qrCodeUrl);
+      const dataUrl = await QRCode.toDataURL(qrSessionUrl, {
+        width: 400,
+        margin: 2,
+      });
 
-      // Optional: Add a MIME type check to reduce risk
-      const contentType = response.headers.get('content-type')
-      if (!contentType?.includes('image')) {
-        throw new Error('Unexpected content type')
-      }
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `${qrSession.campaign.name || 'qr-code'}-${Date.now()}.png`;
+      link.click();
 
-      const blob = await response.blob()
-      const filename = `${qrSession.campaign.name || 'qr-code'}-${Date.now()}.png`
-      saveAs(blob, filename)
-
-      toast.success('QR code downloaded')
+      toast.success('QR code downloaded');
     } catch (error) {
-      console.error('QR code download failed:', error)
-      toast.error('Failed to download QR code')
+      console.error('QR download failed:', error);
+      toast.error('Failed to generate QR code');
     }
   }
 
@@ -308,26 +309,9 @@ export default function QRSessionPage() {
               ) : (
                 <Skeleton className="h-[240px] w-[240px] rounded-md" />
               )}
-
-            </div>
-
-            <div className="w-full relative mb-6">
-              <Input value={qrSessionUrl} readOnly className="pr-10 text-sm font-mono" />
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute right-1 top-1 h-8 w-8"
-                onClick={copyToClipboard}
-              >
-                {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </Button>
             </div>
 
             <div className="flex gap-3 w-full mb-2">
-              <Button variant="outline" className="flex-1 gap-2" onClick={copyToClipboard}>
-                <Copy className="h-4 w-4" />
-                <span>Copy Link</span>
-              </Button>
               <Button variant="outline" className="flex-1 gap-2" onClick={downloadQR}>
                 <Download className="h-4 w-4" />
                 <span>Download</span>
@@ -345,7 +329,7 @@ export default function QRSessionPage() {
                 <Label>Mint Proof of Participation (POP)</Label>
 
                 <div className="flex flex-col gap-2">
-                  <Label className="text-sm">Select NFT Type</Label>
+                  <Label className="text-sm">{!qrSession?.vault[0]?.minted && "Select"}{" "}NFT Type</Label>
                   <div className="flex gap-4">
                     <Label className="flex items-center space-x-2">
                       <Input
@@ -353,7 +337,7 @@ export default function QRSessionPage() {
                         value="standard"
                         checked={mintType === 'standard'}
                         onChange={() => setMintType('standard')}
-                        disabled={isMinting}
+                        disabled={isMinting || qrSession?.vault[0]?.minted}
                       />
                       <span>Standard</span>
                     </Label>
@@ -363,15 +347,14 @@ export default function QRSessionPage() {
                         value="compressed"
                         checked={mintType === 'compressed'}
                         onChange={() => setMintType('compressed')}
-                        disabled={true}
+                        disabled={true || qrSession?.vault[0]?.minted}
                       />
                       <span>Compressed</span>
                     </Label>
                   </div>
                 </div>
 
-                {/* Mint Button */}
-                {!qrSession?.vault && (
+                {qrSession?.vault[0] === undefined && (
                   <Button
                     onClick={() => handleMint(mintType)}
                     className="w-full"
@@ -387,8 +370,6 @@ export default function QRSessionPage() {
                   <Button
                     onClick={() => {
                       setIsMinting(true)
-                      console.log(qrSession.vault[0].publicKey);
-
                       const totalCostInLamports = Math.ceil(Number(qrSession.vault[0].costInSol) * 1e9);
                       promptTransfer(bn(totalCostInLamports), qrSession.vault[0].publicKey)
                     }}

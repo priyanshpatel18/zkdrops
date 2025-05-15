@@ -129,7 +129,7 @@ export default function DashboardPage() {
     return (
       <div className="overflow-hidden h-[calc(100vh-64px)] bg-background relative">
         <BackgroundLines className="h-[calc(100vh-64px)] flex items-center justify-center px-4">
-          <div className="w-full h-[calc(100vh-64px)] flex flex-col items-center justify-center text-center relative z-10 gap-6 max-w-3xl">
+          <div className="w-full h-[calc(100vh-64px)] flex flex-col items-center justify-center text-center relative gap-6 max-w-3xl">
             <motion.h1
               className={`text-4xl sm:text-6xl font-bold leading-tight text-foreground ${bricolage.className}`}
               initial={{ opacity: 0, y: -20 }}

@@ -1,24 +1,5 @@
 'use client'
 
-import { saveAs } from 'file-saver'
-import { AnimatePresence, motion } from 'framer-motion'
-import {
-  ArrowLeft,
-  BarChart2,
-  CalendarIcon,
-  CheckCircle2,
-  Copy,
-  EditIcon,
-  ExternalLink,
-  Loader2,
-  QrCode,
-  Share2,
-  Shield,
-} from 'lucide-react'
-import { useParams, useRouter } from 'next/navigation'
-import { QRCodeSVG } from 'qrcode.react'
-import { useEffect, useMemo, useState } from 'react'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,8 +10,21 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Campaign } from '@/types/types'
 import { QRSessionExpiry } from '@prisma/client'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { motion } from 'framer-motion'
+import {
+  ArrowLeft,
+  BarChart2,
+  CalendarIcon,
+  CheckCircle2,
+  EditIcon,
+  Loader2,
+  QrCode,
+  Share2,
+  Shield
+} from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function CampaignPage() {
@@ -41,7 +35,6 @@ export default function CampaignPage() {
   const [loading, setLoading] = useState(true)
   const [isOwner, setIsOwner] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showQrModal, setShowQrModal] = useState(false)
   const [countdown, setCountdown] = useState({
     days: 0,
     hours: 0,
@@ -132,7 +125,6 @@ export default function CampaignPage() {
                     : '',
               claimLimitPerUser: parseInt(campaign.claimLimitPerUser?.toString() || '0'),
               metadataUri: campaign.metadataUri || '',
-              qrCodeUrl: campaign.qrCodeUrl || '',
               qrSessions: campaign.qrSessions || [],
             })
           }
@@ -161,27 +153,6 @@ export default function CampaignPage() {
   const copyToClipboard = (text: string, message: string) => {
     navigator.clipboard.writeText(text)
     toast.success(message)
-  }
-
-  const downloadQR = async (campaign: Campaign) => {
-    try {
-      const response = await fetch(campaign.qrCodeUrl)
-
-      // Optional: Add a MIME type check to reduce risk
-      const contentType = response.headers.get('content-type')
-      if (!contentType?.includes('image')) {
-        throw new Error('Unexpected content type')
-      }
-
-      const blob = await response.blob()
-      const filename = `${campaign.name || 'qr-code'}-${Date.now()}.png`
-      saveAs(blob, filename)
-
-      toast.success('QR code downloaded')
-    } catch (error) {
-      console.error('QR code download failed:', error)
-      toast.error('Failed to download QR code')
-    }
   }
 
   const formatDate = (dateString: string | null) => {
@@ -305,11 +276,6 @@ export default function CampaignPage() {
                 </div>
 
                 <div className="flex gap-2 mt-4 md:mt-0">
-                  <Button size="sm" variant="outline" className="gap-1" onClick={() => setShowQrModal(true)}>
-                    <QrCode className="h-4 w-4" />
-                    <span className="hidden sm:inline">QR Code</span>
-                  </Button>
-
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -319,7 +285,7 @@ export default function CampaignPage() {
                           className="gap-1"
                           onClick={() =>
                             copyToClipboard(
-                              `${window.location.origin}/campaigns/${id}`,
+                              `${window.location.origin}/campaign/${id}`,
                               'Campaign link copied to clipboard!',
                             )
                           }
@@ -485,35 +451,7 @@ export default function CampaignPage() {
                             <span>Create QR Session</span>
                           </Button>
                         )}
-
-                        <Button variant="outline" className="gap-2" onClick={() => setShowQrModal(true)}>
-                          <QrCode className="h-4 w-4" />
-                          <span>Show QR Code</span>
-                        </Button>
                       </div>
-                    </div>
-                  </>
-                )}
-
-                {!isOwner && (
-                  <>
-                    <Separator />
-
-                    <div className="flex justify-center">
-                      <Button
-                        size="lg"
-                        className="gap-2"
-                        onClick={() => {
-                          if (activeQrSession) {
-                            router.push(`/claim/${activeQrSession.nonce}`)
-                          } else {
-                            toast.error('No active sessions to claim')
-                          }
-                        }}
-                      >
-                        <CheckCircle2 className="h-5 w-5" />
-                        <span>Claim Token</span>
-                      </Button>
                     </div>
                   </>
                 )}
@@ -522,81 +460,6 @@ export default function CampaignPage() {
           </Card>
         </div>
       </div>
-
-      {/* QR Code Modal */}
-      <AnimatePresence>
-        {showQrModal && (
-          <motion.div
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-card rounded-lg shadow-lg max-w-md w-full border-border"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-            >
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold">Campaign QR Code</h2>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setShowQrModal(false)}>
-                    ✕
-                  </Button>
-                </div>
-
-                <div className="flex flex-col items-center gap-4">
-                  <div className="bg-white p-6 rounded-lg">
-                    <QRCodeSVG
-                      value={`${window.location.origin}/campaign/${id}`}
-                      size={200}
-                      level="H"
-                      includeMargin={true}
-                    />
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Scan this QR code or share the link below to claim the token:
-                    </p>
-                    <div className="flex items-center justify-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1"
-                        onClick={() =>
-                          copyToClipboard(
-                            `${window.location.origin}/campaign/${id}`,
-                            'Campaign link copied to clipboard!',
-                          )
-                        }
-                      >
-                        <Copy className="h-3 w-3" />
-                        <span>Copy Link</span>
-                      </Button>
-
-                      <Button variant="outline" size="sm" className="gap-1" asChild>
-                        <Link href={campaign.qrCodeUrl} target="_blank">
-                          <ExternalLink className="h-3 w-3" />
-                          <span>Open</span>
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <Button className="w-full" onClick={() => downloadQR(campaign)}>
-                    Download QR Code
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   )
 }

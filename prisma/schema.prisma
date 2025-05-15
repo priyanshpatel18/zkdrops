@@ -30,7 +30,6 @@ model Campaign {
   tokenSymbol       String
   tokenUri          String
   isActive          Boolean     @default(true)
-  qrCodeUrl         String?
   startsAt          DateTime?
   endsAt            DateTime?
   claimLimitPerUser Int?
