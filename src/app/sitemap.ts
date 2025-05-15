@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next'
 import path from 'path'
 
 // Add Details according to the project requirements
-const URL = 'https://echover.xyz'
+const URL = 'https://zkdrops.xyz'
 const baseDir = 'src/app'
 const dynamicDirs = ['']
 const excludeDirs = ['']

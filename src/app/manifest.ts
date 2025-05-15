@@ -1,9 +1,9 @@
 import type { MetadataRoute } from 'next'
 
 const { appName, description } = {
-  appName: 'Echover – Provenance-Powered Web3 Creator PlatformSolixDB',
+  appName: 'zkdrops – Compressed Proof of Participation on Solana',
   description:
-    'Echover is a provenance-driven content platform where creators publish digital work, verify genuine engagement using ZK-proofs, and reward top supporters with NFTs on Solana. Own your audience, build trust, and showcase authentic content history—all in one place.',
+    'zkdrops is a zk-compressed Proof-of-Participation interface built on Solana. Let creators mint experience tokens, attendees claim them via QR, and all actions remain scalable, verifiable, and private.',
 }
 
 export default function manifest(): MetadataRoute.Manifest {

@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 const { title, description, ogImage, baseURL } = {
   title: 'zkdrops – Compressed Proof of Participation on Solana',
   description:
-    'zkdrops is a zk-compressed Proof-of-Participation protocol built on Solana. Let creators mint experience tokens, attendees claim them via QR, and all actions remain scalable, verifiable, and private.',
+    'zkdrops is a zk-compressed Proof-of-Participation interface built on Solana. Let creators mint experience tokens, attendees claim them via QR, and all actions remain scalable, verifiable, and private.',
   baseURL: 'https://zkdrops.xyz',
   ogImage: 'https://zkdrops.xyz/open-graph.png',
 }
