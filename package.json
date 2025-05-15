@@ -49,6 +49,7 @@
     "bullmq": "^5.52.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.9.4",
     "gill": "^0.8.3",

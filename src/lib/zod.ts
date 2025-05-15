@@ -8,7 +8,7 @@ export const createCampaignSchema = z.object({
   isActive: z.boolean(),
   startsAt: z.string(),
   endsAt: z.string(),
-  claimLimitPerUser: z.number(),
+  claimLimitPerUser: z.number().optional().nullable(),
   metadataUri: z.string().optional(),
   organizerAddress: z.string().optional(),
 })

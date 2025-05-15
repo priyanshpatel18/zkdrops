@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { formatDate } from '@/lib/date'
 import { createCampaign } from '@/lib/supabaseClient.'
 import { Campaign } from '@/types/types'
 import { useWallet } from '@solana/wallet-adapter-react'
@@ -85,12 +86,27 @@ export default function CreateCampaignPage() {
         id: '',
         organizerAddress: publicKey.toBase58(),
         claimLimitPerUser: parseInt(formData.claimLimitPerUser),
+        startsAt: formatDate(formData.startsAt),
+        endsAt: formatDate(formData.endsAt),
       }
 
       const imageData = new FormData()
       imageData.append('file', tokenImage)
       await createCampaign(body, imageData)
 
+      setFormData({
+        name: '',
+        description: '',
+        tokenSymbol: '',
+        tokenUri: '',
+        isActive: true,
+        startsAt: '',
+        tokenMediaType: '',
+        endsAt: '',
+        claimLimitPerUser: '',
+        metadataUri: '',
+        qrCodeUrl: '',
+      });
       setShowSuccessModal(true)
     } catch (error) {
       if (error instanceof Error) {
@@ -198,9 +214,14 @@ export default function CreateCampaignPage() {
                     </AccordionTrigger>
                     <AccordionContent className="space-y-4 pt-2">
                       <div className="space-y-2">
-                        <Label htmlFor="tokenSymbol" className="flex items-center">
-                          <span>Token Symbol</span>
-                          <span className="text-destructive ml-1">*</span>
+                        <Label htmlFor="tokenSymbol" className="flex items-center justify-between">
+                          <span className="flex items-center">
+                            <span>Token Symbol</span>
+                            <span className="text-destructive ml-1">*</span>
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {formData.tokenSymbol.length}/32
+                          </span>
                         </Label>
                         <Input
                           id="tokenSymbol"
@@ -208,11 +229,11 @@ export default function CreateCampaignPage() {
                           value={formData.tokenSymbol}
                           onChange={(e) => handleChange('tokenSymbol', e.target.value)}
                           required
+                          maxLength={32}
                           placeholder="e.g. SOL"
                           className="border-primary/20"
                         />
                       </div>
-
                       <div className="space-y-2">
                         <Label htmlFor="tokenMedia" className="flex items-center">
                           <span>Token Image</span>
@@ -226,7 +247,7 @@ export default function CreateCampaignPage() {
                           className="cursor-pointer"
                           accept="image/png,image/jpeg,image/jpg"
                           onClick={(e) => {
-                            ;(e.target as HTMLInputElement).value = ''
+                            ; (e.target as HTMLInputElement).value = ''
                             setFormData((prev) => ({ ...prev, tokenUri: '', tokenMediaType: '' }))
                             setTokenImage(null)
                           }}
@@ -247,7 +268,7 @@ export default function CreateCampaignPage() {
                                 src={URL.createObjectURL(tokenImage)}
                                 alt="Token Image"
                                 fill
-                                className="object-contain rounded-md"
+                                className="object-cover rounded-md"
                               />
                               <Button
                                 type="button"

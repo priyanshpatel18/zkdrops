@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { bricolage } from '@/fonts/bricolage'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, Menu as MenuIcon, Plus, X } from 'lucide-react'
+import { Menu as MenuIcon, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { WalletButton } from '../solana/SolanaProvider'
@@ -82,13 +82,6 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <Plus className="h-4 w-4" /> Create
-            </Link>
-            <Link
-              href="/campaigns"
-              className="flex items-center gap-2 px-2 py-3 text-foreground hover:bg-muted rounded-md"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <LayoutDashboard className="h-4 w-4" /> Campaigns
             </Link>
             <WalletButton />
           </div>

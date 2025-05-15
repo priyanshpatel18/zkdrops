@@ -206,12 +206,13 @@ export default function DashboardPage() {
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <Card
-                    className="border border-border hover:border-primary/50 transition-colors cursor-pointer"
+                    className="border border-border hover:border-primary/50 transition-colors cursor-pointer flex flex-col justify-between min-h-[370px]"
                     onClick={() => router.push(`/campaign/${campaign.id}`)}
                   >
                     <CardHeader className="pb-4">
                       <div className="flex justify-between items-start">
-                        <CardTitle className="text-xl">{campaign.name}</CardTitle>
+                        <CardTitle className="text-xl line-clamp-1">{campaign.name}</CardTitle>
+
                         <Badge
                           variant="secondary"
                           className={`${isCampaignActive(campaign) ? 'bg-green-500' : 'bg-accent'}`}
@@ -222,41 +223,45 @@ export default function DashboardPage() {
                       <CardDescription className="line-clamp-1">{campaign.tokenSymbol}</CardDescription>
                     </CardHeader>
 
-                    <CardContent className="flex flex-row items-center justify-between gap-6">
-                      <div>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{campaign.description}</p>
-                        <div className="flex flex-col gap-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span>Starts: {formatDate(campaign.startsAt)}</span>
+                    <CardContent className="flex flex-row justify-between gap-6 flex-1">
+                      <div className="flex flex-col justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{campaign.description}</p>
+                          <div className="flex flex-col gap-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span>Starts: {formatDate(campaign.startsAt)}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Timer className="h-4 w-4 text-muted-foreground" />
+                              <span>Ends: {formatDate(campaign.endsAt)}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Timer className="h-4 w-4 text-muted-foreground" />
-                            <span>Ends: {formatDate(campaign.endsAt)}</span>
-                          </div>
-                          <div className="mt-1">
-                            <Badge
-                              variant={variant as 'default' | 'secondary' | 'outline'}
-                              className="p-2 px-3 text-sm"
-                            >
-                              {status}
-                            </Badge>
-                          </div>
+                        </div>
+
+                        <div className="mt-2">
+                          <Badge
+                            variant={variant as 'default' | 'secondary' | 'outline'}
+                            className="p-2 px-3 text-sm"
+                          >
+                            {status}
+                          </Badge>
                         </div>
                       </div>
 
-                      <div className="relative w-[100px] h-[100px]">
+                      <div className="relative w-[100px] h-[100px] shrink-0">
                         {!loadedImages[campaign.id] && (
                           <Skeleton className="w-full h-full rounded-md absolute top-0 left-0" />
                         )}
                         <Image
                           src={campaign.tokenUri}
                           alt={campaign.name}
-                          width={100}
-                          height={100}
+                          fill
                           className={`rounded-md object-cover transition-opacity duration-500 ${loadedImages[campaign.id] ? 'opacity-100' : 'opacity-0'
                             }`}
-                          onLoad={() => setLoadedImages((prev) => ({ ...prev, [campaign.id]: true }))}
+                          onLoad={() =>
+                            setLoadedImages((prev) => ({ ...prev, [campaign.id]: true }))
+                          }
                         />
                       </div>
                     </CardContent>
