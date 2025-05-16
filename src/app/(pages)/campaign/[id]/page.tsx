@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Campaign } from '@/types/types'
 import { QRSessionExpiry } from '@prisma/client'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowLeft,
   BarChart2,
@@ -21,6 +21,7 @@ import {
   QrCode,
   Share2,
   Shield,
+  Trash2Icon,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -41,6 +42,7 @@ export default function CampaignPage() {
     minutes: 0,
     seconds: 0,
   })
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const activeQrSession = useMemo(() => {
     const now = new Date()
@@ -166,6 +168,30 @@ export default function CampaignPage() {
     }).format(date)
   }
 
+  async function deleteCampaign() {
+    if (!id) return toast.error('Invalid campaign ID')
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/campaign?id=${id}`, {
+        method: 'DELETE',
+      })
+
+      if (res.status === 200) {
+        toast.success('Campaign deleted successfully')
+        router.push('/')
+      }
+      const data = await res.json()
+      if (data.error) {
+        toast.error(data.error)
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to delete campaign')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -175,6 +201,7 @@ export default function CampaignPage() {
       </div>
     )
   }
+
 
   // Error state
   if (error) {
@@ -291,6 +318,16 @@ export default function CampaignPage() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+
+                  {isOwner &&
+                    <Button
+                      className='bg-red-500 text-primary hover:bg-red-600'
+                      size="sm"
+                      onClick={() => setShowDeleteModal(true)}
+                    >
+                      <Trash2Icon className="h-4 w-4" />
+                    </Button>
+                  }
                 </div>
               </div>
             </div>
@@ -446,6 +483,43 @@ export default function CampaignPage() {
               </div>
             </CardContent>
           </Card>
+
+          <AnimatePresence>
+            {showDeleteModal && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"
+              >
+                <Card className="w-full max-w-md border border-primary/20 shadow-xl">
+                  <CardContent className="space-y-4 text-center">
+                    <h2 className="text-2xl font-bold">Are you sure?</h2>
+                    <p className="text-muted-foreground">
+                      This action cannot be undone. Are you sure you want to permanently delete this campaign?
+                    </p>
+                    <div className="flex gap-3 items-center justify-end mt-6 w-full">
+                      <Button
+                        variant="default"
+                        onClick={() => setShowDeleteModal(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="default"
+                        onClick={deleteCampaign}
+                        className=" bg-red-500 text-primary hover:bg-red-600"
+                      >
+                        Yes, Delete
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
         </div>
       </div>
     </motion.div>

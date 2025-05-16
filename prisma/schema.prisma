@@ -26,7 +26,7 @@ model Campaign {
   name              String
   description       String?
   organizerId       String
-  organizer         Organizer   @relation(fields: [organizerId], references: [id])
+  organizer         Organizer   @relation(fields: [organizerId], references: [id], onDelete: Cascade)
   tokenSymbol       String
   tokenUri          String
   isActive          Boolean     @default(true)
@@ -85,7 +85,7 @@ model ZKProof {
 model QRSession {
   id         String          @id @default(cuid())
   campaignId String
-  campaign   Campaign        @relation(fields: [campaignId], references: [id])
+  campaign   Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   createdAt  DateTime        @default(now())
   expiry     QRSessionExpiry
   maxClaims  Int             @default(1)
@@ -114,7 +114,7 @@ model Vault {
   id          String    @id @default(cuid())
   costInSol   Decimal
   qrSessionId String
-  qrSession   QRSession @relation(fields: [qrSessionId], references: [id])
+  qrSession   QRSession @relation(fields: [qrSessionId], references: [id], onDelete: Cascade)
   publicKey   String
   privateKey  String
   createdAt   DateTime  @default(now())
