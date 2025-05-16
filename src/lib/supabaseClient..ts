@@ -48,7 +48,7 @@ export async function createCampaign(formData: Campaign, tokenImage: FormData) {
   const metadataData = await metadataRes.json()
   formData.metadataUri = metadataData.url
 
-  const res = await fetch('/api/campaign/create', {
+  const res = await fetch('/api/campaign', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -58,5 +58,56 @@ export async function createCampaign(formData: Campaign, tokenImage: FormData) {
 
   if (!res.ok) {
     throw new Error('Failed to create campaign')
+  }
+}
+
+export async function editCampaign(formData: Campaign) {
+  const nftMetadata = {
+    name: formData.name,
+    description: formData.description,
+    image: formData.tokenUri,
+    external_url: 'https://zkdrops.xyz',
+    properties: {
+      files: [
+        {
+          uri: formData.tokenUri,
+          type: 'image/jpg',
+        },
+      ],
+      category: 'image',
+    },
+  }
+
+  const nftMetadataFileName = `${Date.now()}-${formData.name}-metadata.json`
+  const nftMetadataFile = new File(
+    [JSON.stringify(nftMetadata)],
+    nftMetadataFileName,
+    { type: 'application/json' }
+  )
+
+  if (!nftMetadataFile) {
+    throw new Error('Error creating NFT metadata file')
+  }
+
+  const metadataBody = new FormData()
+  metadataBody.append('file', nftMetadataFile)
+  const metadataRes = await fetch('/api/files', {
+    method: 'POST',
+    body: metadataBody,
+  })
+
+  const metadataData = await metadataRes.json()
+  formData.metadataUri = metadataData.url
+
+  const res = await fetch("/api/campaign", {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData),
+  })
+
+  if (!res.ok) {
+    throw new Error('Failed to update or create campaign')
   }
 }

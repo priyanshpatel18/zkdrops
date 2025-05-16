@@ -13,6 +13,20 @@ export const createCampaignSchema = z.object({
   organizerAddress: z.string().optional(),
 })
 
+export const editCampaignSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().max(32).min(1),
+  description: z.string().max(200).min(1).optional(),
+  tokenSymbol: z.string().max(32).min(1),
+  tokenUri: z.string().max(200).min(1).optional(),
+  isActive: z.boolean(),
+  startsAt: z.string(),
+  endsAt: z.string(),
+  claimLimitPerUser: z.number().optional().nullable(),
+  metadataUri: z.string().optional(),
+  organizerAddress: z.string().optional(),
+})
+
 export const createQrSessionSchema = z.object({
   campaignId: z.string().min(1, 'Campaign ID is required'),
   maxClaims: z

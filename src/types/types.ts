@@ -16,9 +16,8 @@ export interface Campaign {
   isActive: boolean
   startsAt: string
   endsAt: string
-  claimLimitPerUser: number
+  claimLimitPerUser: number | null
   metadataUri: string
-  qrCodeUrl: string
   tokenMediaType: string
   organizerAddress: string
   organizer?: Organizer

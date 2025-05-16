@@ -244,13 +244,6 @@ export default function CampaignPage() {
             <ArrowLeft className="h-4 w-4" />
             <span>Back</span>
           </Button>
-
-          {isOwner && (
-            <Button onClick={() => router.push(`/campaigns/${id}/edit`)} variant="outline" className="gap-2">
-              <EditIcon className="h-4 w-4" />
-              <span>Edit Campaign</span>
-            </Button>
-          )}
         </div>
 
         <div className="flex flex-col">
@@ -413,8 +406,7 @@ export default function CampaignPage() {
                       <div className="flex flex-wrap gap-3">
                         <Button
                           onClick={() => {
-                            toast.info('Feature coming soon')
-                            // router.push(`/campaign/${id}/edit`)
+                            router.push(`/campaign/${id}/edit`)
                           }}
                           className="gap-2"
                         >
