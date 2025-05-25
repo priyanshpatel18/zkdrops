@@ -22,7 +22,7 @@ export const siteConfig: Metadata = {
     card: 'summary_large_image',
     title,
     description,
-    images: [ogImage],
+    images: ogImage,
   },
   icons: {
     icon: '/favicon.ico',
